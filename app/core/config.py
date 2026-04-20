@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     app_name: str = "Robot Payment Testing"
     app_env: str = "development"
     debug: bool = True
-    security_key: str
+    secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     database_url: str
