@@ -8,7 +8,7 @@ import enum
 
 class RobotType(str, enum.Enum):
     T1 = "T1"  # tests one terminal
-    T4 = "T4"  # tests frour terminals
+    T4 = "T4"  # tests four terminals
     ATM = "ATM"  # tests ATM machines
     MOBILE = "MOBILE"  # tests wireless terminals
 
