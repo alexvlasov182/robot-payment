@@ -13,7 +13,10 @@ class RobotCreate(BaseModel):
 class RobotResponse(BaseModel):
     id: int
     name: str
-    robot_type: str
+    robot_type: RobotType
     status: str
     serial_number: str
-    capabilites: str
+    capabilites: Optional[str]
+
+    class Config:
+        from_attributes = True
