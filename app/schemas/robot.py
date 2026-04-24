@@ -1,9 +1,13 @@
-from pydantic import BaseModel
+"""Main file for the robot schemas"""
+
 from typing import Optional
+from pydantic import BaseModel  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from app.models.robot import RobotType
 
 
 class RobotCreate(BaseModel):
+    """Schema for the creating Robot"""
+
     name: str
     serial_number: str
     robot_type: Optional[RobotType] = RobotType.T1
@@ -11,6 +15,8 @@ class RobotCreate(BaseModel):
 
 
 class RobotResponse(BaseModel):
+    """Schema for the response from the robot"""
+
     id: int
     name: str
     robot_type: RobotType
@@ -19,4 +25,9 @@ class RobotResponse(BaseModel):
     capabilites: Optional[str]
 
     class Config:
+        """Class config"""
+
         from_attributes = True
+
+
+# type: ignore[reportMissingImports]  # pylint: disable=import-error
