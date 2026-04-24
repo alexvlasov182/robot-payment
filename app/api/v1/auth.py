@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy.orm import Session  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from app.core.database import get_db
 from app.core.security import create_access_token
 from app.services.auth_service import create_user, authenticate_user, get_user_by_email
