@@ -1,3 +1,5 @@
+"""Auth endpoints"""
+
 from fastapi import APIRouter, Depends, HTTPException, status  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from sqlalchemy.orm import Session  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from app.core.database import get_db
@@ -10,6 +12,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 def register(user: UserRegister, db: Session = Depends(get_db)):
+    """User registration"""
     if user.password != user.confirm_password:
         raise HTTPException(400, "Password do not match")
     existing = get_user_by_email(db, user.email)
@@ -21,6 +24,7 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def loign(user: UserLogin, db: Session = Depends(get_db)):
+    """User authentication"""
     db_user = authenticate_user(db, user.email, user.password)
     if not db_user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
