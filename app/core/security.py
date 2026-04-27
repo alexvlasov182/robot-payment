@@ -5,7 +5,7 @@ from jose import jwt  # type: ignore[reportMissingImports]  # pylint: disable=im
 from passlib.context import CryptContext  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from app.core.config import settings
 
-pwd_context = CryptContext(shcemes=["pbkdf2_sha256"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
