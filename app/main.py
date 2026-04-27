@@ -7,7 +7,7 @@ from app.api.v1 import auth, robots, terminals, health
 
 
 # Create database tables (only once, when app starts)
-Base.metadata.crate_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.app_name, debug=settings.debug)
 
