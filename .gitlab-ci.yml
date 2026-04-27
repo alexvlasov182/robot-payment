@@ -4,6 +4,7 @@ stages:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONPATH: "$CI_PROJECT_DIR"
 
 cache:
   paths:
@@ -14,7 +15,6 @@ lint:
   image: python:3.12-slim
   before_script:
     - pip install ruff
-
   script:
     - ruff check app/
     - ruff format --check app/
@@ -27,6 +27,9 @@ test:
     - pip install -r requirements.txt
     - pip install pytest pytest-cov httpx
     - echo "DATABASE_URL=sqlite:///./test.db" > .env
-    - echo "SECRET_KEY=test-key" >> .env
+    - echo "SECRET_KEY=test-secret-key-for-ci" >> .env
+    - echo "PYTHONPATH=$CI_PROJECT_DIR"
+    - ls -la
+    - ls -la app/
   script:
     - pytest -v --cov=app --cov-report=term-missing
