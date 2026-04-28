@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   db:
-    image: postgers:16-alpine
+    image: postgres:16-alpine
     container_name: robot-payment-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
