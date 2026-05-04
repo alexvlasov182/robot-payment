@@ -1,22 +1,23 @@
-"""Models for the Robots"""
+"""Model for the Robots"""
 
 import enum
-from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-from sqlalchemy.sql import func  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy import Column, Integer, String, Enum as SQLEnum  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+
+# from sqlalchemy.sql import func  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from app.core.database import Base
 
 
 class RobotType(str, enum.Enum):
-    """Robot Types"""
+    """Robot type enumeration"""
 
-    T1 = "T1"  # tests one terminal
-    T4 = "T4"  # tests four terminals
-    ATM = "ATM"  # tests ATM machines
-    MOBILE = "MOBILE"  # tests wireless terminals
+    T1 = "T1"  # Single terminal tester
+    T4 = "T4"  # Four terminal tester
+    ATM = "ATM"  # ATM tester
+    MOBILE = "MOBILE"  # Mobile terminal tester
 
 
 class Robot(Base):
-    """Base model for the robots"""
+    """Robot model for payment terminal testing"""
 
     __tablename__ = "robots"
 
@@ -26,4 +27,4 @@ class Robot(Base):
     status = Column(String, default="offline")
     serial_number = Column(String, unique=True, nullable=False)
     capabilities = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    # created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -1,25 +1,26 @@
 """Main file fot the Auth Schemas"""
 
-from pydantic import BaseModel, EmailStr  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from pydantic import BaseModel, EmailStr, Field  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 
 
 class UserRegister(BaseModel):
-    """Schema for the User Regestration"""
+    """Request schema for user registration"""
 
-    email: EmailStr
-    password: str
-    confirm_password: str
+    email: EmailStr = Field(..., description="User eamil address")
+    password: str = Field(..., min_length=6, description="User passwrod")
+    confirm_password: str = Field(..., description="Confirm password")
 
 
 class UserLogin(BaseModel):
-    """Shema for the User Login"""
+    """Request schema for user login"""
 
-    email: EmailStr
-    password: str
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., description="User password")
 
 
-class Token(BaseModel):
-    """Schema for the Token"""
+class TokenResponse(BaseModel):
+    """Response schema for login"""
 
-    access_token: str
-    token_type: str = "bearer"
+    access_token: str = Field(..., description="JWT access token")
+    token_type: str = Field(default="bearer", description="Token type")
+    expires_in: int = Field(default=1800, description="Token expiration in seconds")
