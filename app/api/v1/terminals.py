@@ -1,32 +1,49 @@
-"""Terminals Endpoints"""
+"""Terminals API"""
 
-import asyncio
-from fastapi import APIRouter  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-
+from fastapi import APIRouter, Depends
+from app.api.dependencies import get_terminal_service
+from app.services.terminal_services import TerminalService
+from app.schemas.terminal import TerminalTestRequest, TerminalTestResponse
 
 router = APIRouter(prefix="/terminals", tags=["Terminals"])
 
 
-@router.post("/test")
-async def test_terminal(terminal_id: int, amount: float, payment_method: str = "tap"):
-    """Test terminal"""
-    await asyncio.sleep(0.5)  # simulate robot moving
-    return {
-        "terminal_id": terminal_id,
-        "amount": amount,
-        "method": payment_method,
-        "status": "approved",
-        "response_time_ms": 500,
-    }
+@router.post(
+    "/test",
+    response_model=TerminalTestResponse,
+    summary="Test payment terminal",
+    description="Simulate testing a payment terminal with robot",
+)
+async def test_terminal(
+    request: TerminalTestRequest,
+    terminal_service: TerminalService = Depends(get_terminal_service),
+):
+    """Test a payment terminal"""
+    result = await terminal_service.test_terminal(
+        request.terminal_id, request.amount, request.payment_method
+    )
+    return TerminalTestResponse(**result)
 
 
-@router.get("/mcdonalds")
-def mcdonalds_test():
-    """Get information about macdonald's"""
-    return {"merchant": "McDonald's", "result": "passed"}
+@router.get(
+    "/mcdonalds",
+    summary="McDonald's terminal test",
+    description="Quick test for McDonald's terminals",
+)
+async def test_mcdonalds(
+    terminal_service: TerminalService = Depends(get_terminal_service),
+):
+    """Test McDonald's terminal configuration"""
+    return terminal_service.get_mcdonalds_test()
 
 
-@router.get("/grocery/regresssion")
-def grocery_regression():
-    """Get infromation from the grocery shops"""
-    return {"merchant": "Migros", "tests_run": 50, "passed": 48}
+@router.get(
+    "/grocery/regression",
+    summary="Grocery store regression",
+    description="Full regression test for grocery stores",
+)
+async def grocery_regression(
+    terminal_service: TerminalService = Depends(get_terminal_service),
+):
+    """Run grocery store regression tests"""
+    return terminal_service.get_grocery_regression()
