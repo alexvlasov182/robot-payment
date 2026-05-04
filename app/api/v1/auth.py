@@ -1,32 +1,54 @@
 """Auth endpoints"""
 
-from fastapi import APIRouter, Depends, HTTPException, status  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-from sqlalchemy.orm import Session  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-from app.core.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.api.dependencies import get_auth_service
+from app.services.auth_service import AuthService
+from app.schemas.auth import UserLogin, UserRegister, TokenResponse
 from app.core.security import create_access_token
-from app.services.auth_service import create_user, authenticate_user, get_user_by_email
-from app.schemas.auth import UserRegister, UserLogin, Token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", status_code=status.HTTP_201_CREATED)
-def register(user: UserRegister, db: Session = Depends(get_db)):
-    """User registration"""
-    if user.password != user.confirm_password:
-        raise HTTPException(400, "Password do not match")
-    existing = get_user_by_email(db, user.email)
-    if existing:
-        raise HTTPException(400, "Email aleready registered")
-    db_user = create_user(db, user.email, user.password)
-    return {"message": "User created", "email": db_user.email}
+@router.post(
+    "/register",
+    status_code=status.HTTP_201_CREATED,
+    summary="Register new user",
+    description="Create a new user account",
+)
+async def register(
+    user_data: UserRegister, auth_service: AuthService = Depends(get_auth_service)
+):
+    """Register a new user"""
+    if user_data.password != user_data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match"
+        )
+
+    try:
+        user = auth_service.register_user(user_data.email, user_data.password)
+        return {"message": "User registered successfully", "user": user}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
+        ) from e
 
 
-@router.post("/login", response_model=Token)
-def loign(user: UserLogin, db: Session = Depends(get_db)):
-    """User authentication"""
-    db_user = authenticate_user(db, user.email, user.password)
-    if not db_user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_access_token(data={"sub": db_user.email})
-    return {"access_token": token}
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Login user",
+    description="Authenticate and get JWT token",
+)
+async def loign(
+    user_data: UserLogin, auth_service: AuthService = Depends(get_auth_service)
+):
+    """Login and get access token"""
+    try:
+        user = auth_service.authenticate_user(user_data.email, user_data.password)
+        token = create_access_token(data={"sub": user["email"]})
+
+        return TokenResponse(access_token=token, token_type="bearer", expires_in=1800)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e

@@ -4,14 +4,19 @@ from sqlalchemy import create_engine  # type: ignore[reportMissingImports]  # py
 from sqlalchemy.orm import declarative_base, sessionmaker  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from app.core.config import settings
 
-# Use sync engine (psycopg2) - simpler for our sync endpoints
-engine = create_engine(settings.database_url)
+
+# Create database engine
+engine = create_engine(settings.database_url, echo=settings.debug)
+
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Base class for models
 Base = declarative_base()
 
 
 def get_db():
-    """Get database connection"""
+    """Dependency to get database session"""
     db = SessionLocal()
     try:
         yield db
