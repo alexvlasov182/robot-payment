@@ -1,13 +1,14 @@
 """Base Settings"""
 
+from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 
 
 class Settings(BaseSettings):
-    """Main Settings for the application"""
+    """Application settings loaded from environment variables"""
 
     app_name: str = "Robot Payment Testing"
-    app_env: str = "development"
+    app_env: Literal["development", "staging", "production"] = "development"
     debug: bool = True
     secret_key: str
     algorithm: str = "HS256"
@@ -16,10 +17,12 @@ class Settings(BaseSettings):
 
     @property
     def sync_database_url(self) -> str:
-        """Url to the database from the .env file"""
+        """Convert async URL to sync for SQLAlchemy"""
         return self.database_url.replace("+asyncpg", "")
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
+    )
 
 
 settings = Settings()  # type: ignore

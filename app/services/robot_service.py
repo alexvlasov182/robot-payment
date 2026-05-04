@@ -1,19 +1,38 @@
 """Services for robots"""
 
+from typing import List, Optional
 from sqlalchemy.orm import Session  # type: ignore[reportMissingImports]  # pylint: disable=import-error
 from app.models.robot import Robot
-from app.schemas.robot import RobotCreate
+from app.repositories.robot_repository import RobotRepository
+from app.schemas.robot import RobotCreate, RobotUpdate
 
 
-def create_robot(db: Session, robot_data: RobotCreate):
-    """Add robot to the database"""
-    db_robot = Robot(**robot_data.model_dump())
-    db.add(db_robot)
-    db.commit()
-    db.refresh(db_robot)
-    return db_robot
+class RobotService:
+    """Robot service with dependency injection"""
 
+    def __init__(self, db: Session):
+        self.robot_repo = RobotRepository(db)
 
-def get_robots(db: Session):
-    """Query to get all robots"""
-    return db.query(Robot).all()
+    def create_robot(self, robot_data: RobotCreate) -> Robot:
+        """Create a new robot"""
+        if self.robot_repo.get_by_serial_number(robot_data.serial_number):
+            raise ValueError("Robot with this serial number already exists")
+
+        return self.robot_repo.create(robot_data)
+
+    def get_all_robots(self) -> List[Robot]:
+        """Get all robots"""
+        return self.robot_repo.get_all()
+
+    def get_robot(self, robot_id: int) -> Optional[Robot]:
+        """Get robot by ID"""
+        return self.robot_repo.get(robot_id)
+
+    def update_robot_status(self, robot_id: int, status: str) -> Optional[Robot]:
+        """Update robot status"""
+        update_data = RobotUpdate(status=status)
+        return self.robot_repo.update(robot_id, update_data)
+
+    def delete_robot(self, robot_id: int) -> bool:
+        """Delete robot"""
+        return self.robot_repo.delete(robot_id)
