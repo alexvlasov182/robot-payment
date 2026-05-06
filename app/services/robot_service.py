@@ -1,7 +1,7 @@
 """Services for robots"""
 
 from typing import List, Optional
-from sqlalchemy.orm import Session  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy.orm import Session
 from app.models.robot import Robot
 from app.repositories.robot_repository import RobotRepository
 from app.schemas.robot import RobotCreate, RobotUpdate

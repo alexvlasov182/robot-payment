@@ -39,7 +39,7 @@ async def register(
     summary="Login user",
     description="Authenticate and get JWT token",
 )
-async def loign(
+async def login(
     user_data: UserLogin, auth_service: AuthService = Depends(get_auth_service)
 ):
     """Login and get access token"""

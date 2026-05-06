@@ -1,6 +1,6 @@
 """Main file fot the Auth Schemas"""
 
-from pydantic import BaseModel, EmailStr, Field  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserRegister(BaseModel):

@@ -38,7 +38,7 @@ class TerminalService:
         """Mock grocery store regression test"""
         return {
             "merchant": "Migros",
-            "test_run": 50,
+            "tests_run": 50,
             "passed": 48,
             "failed": 2,
             "success_rate": "96%",

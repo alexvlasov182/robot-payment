@@ -1,9 +1,8 @@
 """Configuration for the connection to the database"""
 
-from sqlalchemy import create_engine  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-from sqlalchemy.orm import declarative_base, sessionmaker  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import settings
-
 
 # Create database engine
 engine = create_engine(settings.database_url, echo=settings.debug)

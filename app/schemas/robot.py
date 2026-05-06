@@ -1,8 +1,7 @@
 """Main file for the robot schemas"""
 
 from typing import Optional
-from pydantic import BaseModel, Field  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-
+from pydantic import BaseModel, Field
 from app.models.robot import RobotType
 
 

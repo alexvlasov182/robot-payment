@@ -1,9 +1,7 @@
 """Model for the Robots"""
 
 import enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-
-# from sqlalchemy.sql import func  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy import Column, Integer, String, Enum as SQLEnum
 from app.core.database import Base
 
 

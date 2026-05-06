@@ -1,7 +1,7 @@
 """Base Settings"""
 
 from typing import Literal
-from pydantic_settings import BaseSettings, SettingsConfigDict  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):

@@ -1,8 +1,6 @@
 """Model for the User"""
 
-from sqlalchemy import Boolean, Column, Integer, String  # type: ignore[reportMissingImports]  # pylint: disable=import-error
-
-# from sqlalchemy.sql import func  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy import Boolean, Column, Integer, String
 from app.core.database import Base
 
 

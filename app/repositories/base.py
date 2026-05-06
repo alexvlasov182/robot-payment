@@ -4,7 +4,6 @@ from typing import Generic, List, Optional, Type, TypeVar
 from sqlalchemy.orm import Session
 from app.core.database import Base
 
-
 ModelTypeT = TypeVar("ModelTypeT", bound=Base)  # type: ignore
 CreateSchemaT = TypeVar("CreateSchemaT")
 UpdateSchemaT = TypeVar("UpdateSchemaT")
@@ -46,9 +45,9 @@ class BaseRepository(Generic[ModelTypeT, CreateSchemaT, UpdateSchemaT]):
         self.db.refresh(db_obj)
         return db_obj
 
-    def delete(self, recodrd_id: int) -> bool:
+    def delete(self, record_id: int) -> bool:
         """Delete entity by ID"""
-        db_obj = self.get(recodrd_id)
+        db_obj = self.get(record_id)
         if not db_obj:
             return False
         self.db.delete(db_obj)
