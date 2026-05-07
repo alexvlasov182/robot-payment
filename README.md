@@ -2,7 +2,7 @@
 
 ## About The Project
 
-**Automated payment terminal testing platform** that simulates robotic payment testing for retail environments (McDonald's grocery stores, ATMs). Built wiht clean architecture following Repository Pattern and Dependency Injection.
+**Automated payment terminal testing platform** that simulates robotic payment testing for retail environments. Built with clean architecture following Repository Pattern and Dependency Injection.
 
 ### Key Features
 
@@ -293,7 +293,7 @@ MIT
 
 ## Acknowledgments
 
-- Built wiht [FastAPI](https://fastapi.tiangolo.com/)
+- Built with [FastAPI](https://fastapi.tiangolo.com/)
 - Database [PostgreSQL](https://www.postgresql.org/)
 - Containerization [Docker](https://www.docker.com/)
 
