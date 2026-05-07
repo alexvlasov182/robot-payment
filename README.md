@@ -306,6 +306,6 @@ MIT
 
 ## Contact
 
-Oleksandr(Sascha) Vlasov - drumlife182@gmail.com
-Project Link: [Robot Payment](https://gitlab.com/alexvlasov182/robot-payment)
-Personal web-page: [Oleksandr Vlasov](https://oleksandr-vlasov.com/)
+- Oleksandr(Sascha) Vlasov - drumlife182@gmail.com
+- Project Link: [Robot Payment](https://gitlab.com/alexvlasov182/robot-payment)
+- Personal web-page: [Oleksandr Vlasov](https://oleksandr-vlasov.com/)
