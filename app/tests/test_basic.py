@@ -27,7 +27,7 @@ def test_api_health():
     assert response.json()["status"] == "ok"
 
 
-def test_macdonalds():
+def test_mcdonalds():
     """Test McDonald's endpoint"""
     response = client.get("/api/v1/terminals/mcdonalds")
     assert response.status_code == 200

@@ -17,19 +17,12 @@
 
 ## Architecture
 
-┌─────────────────────────────────────────────────────────────┐
-│ API LAYER (FastAPI) │
-│ Handles HTTP requests, validation │
-├─────────────────────────────────────────────────────────────┤
-│ SERVICE LAYER │
-│ Business logic, orchestration │
-├─────────────────────────────────────────────────────────────┤
-│ REPOSITORY LAYER │
-│ Database operations, CRUD │
-├─────────────────────────────────────────────────────────────┤
-│ DATABASE (PostgreSQL) │
-│ Data persistence │
-└─────────────────────────────────────────────────────────────┘
+| Feature                   | Description                       |
+| ------------------------- | --------------------------------- |
+| **API LAYER (FastAPI)**   | Handles HTTP requests, validation |
+| **SERVICE LAYER**         | Business logic, orchestration     |
+| **REPOSITORY LAYER**      | Database operations, CRUD         |
+| **DATABASE (PostgreSQL)** | Data persistence                  |
 
 ### Technology Stack
 
