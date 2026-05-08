@@ -299,7 +299,9 @@ curl -X POST http://localhost:8000/api/v1/terminals/test \
 
 ### 8. Show API documentation
 
-echo "Open http://localhost:8000/docs in your browser"
+```bash
+http://localhost:8000/docs
+```
 
 ## License
 
