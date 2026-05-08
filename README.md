@@ -251,8 +251,8 @@ curl http://localhost:8000/health
 ### 2. Register user
 
 curl -X POST http://localhost:8000/api/v1/auth/register \
- -H "Content-Type: application/json" \
- -d '{"email":"interview@test.com","password":"123456","confirm_password":"123456"}'
+-H "Content-Type: application/json" \
+-d '{"email":"interview123@test.com","password":"123456","confirm_password":"123456"}'
 
 ### 3. Login
 
@@ -263,7 +263,7 @@ TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
 
 ### 4. Create a robot
 
-curl -X POST http://localhost:8000/api/v1/robots/ \
+curl -X POST http://localhost:8000/api/v1/robots \
  -H "Authorization: Bearer $TOKEN" \
  -H "Content-Type: application/json" \
  -d '{"name":"Robot T4","serial_number":"T4-001","robot_type":"T4","capabilities":"tap,chip,swipe"}'
