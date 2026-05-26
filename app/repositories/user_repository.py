@@ -1,3 +1,5 @@
+"""User Repositories"""
+
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.models.user import User
@@ -13,8 +15,9 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
 
     def get_by_email(self, email: str) -> Optional[User]:
         """Get user by email address"""
-        return self.db.query(User).filter(User.email == email).first()
+        normalized = str(email).strip().lower()
+        return self.db.query(User).filter(User.email == normalized).first()
 
     def exists_by_email(self, email: str) -> bool:
         """Check if user exists by email"""
-        return self.db.query(User).filter(User.email == email).count() > 0
+        return self.get_by_email(email) is not None
