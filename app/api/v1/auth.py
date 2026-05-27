@@ -46,16 +46,16 @@ async def login(
     try:
         # Authenticate user
         user = auth_service.authenticate_user(user_data.email, user_data.password)
-        
+
         # Create both tokens
         access_token = create_access_token(data={"sub": user["email"]})
         refresh_token = create_refresh_token(data={"sub": user["email"]})
-        
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            expires_in=1800
+            expires_in=1800,
         )
     except ValueError as e:
         raise HTTPException(

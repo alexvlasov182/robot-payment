@@ -47,7 +47,7 @@ class AuthService:
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
-            "token_type": "bearer"
+            "token_type": "bearer",
         }
 
     def refresh_token(self, refresh_token: str) -> dict:
@@ -66,7 +66,7 @@ class AuthService:
         return {
             "access_token": new_access_token,
             "refresh_token": new_refresh_token,
-            "token_type": "bearer"
+            "token_type": "bearer",
         }
 
     def logout(self, email: str) -> None:
