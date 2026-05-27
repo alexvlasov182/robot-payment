@@ -4,7 +4,6 @@ stages:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
-  PYTHONPATH: "$CI_PROJECT_DIR"
 
 cache:
   paths:
@@ -27,9 +26,9 @@ test:
     - pip install -r requirements.txt
     - pip install pytest pytest-cov httpx
     - echo "DATABASE_URL=sqlite:///./test.db" > .env
-    - echo "SECRET_KEY=test-secret-key-for-ci" >> .env
-    - echo "PYTHONPATH=$CI_PROJECT_DIR"
-    - ls -la
-    - ls -la app/
+    - echo "SECRET_KEY=test-secret-key-for-ci-32-chars" >> .env
+    - echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
+    - echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+    - echo "ALGORITHM=HS256" >> .env
   script:
     - pytest -v --cov=app --cov-report=term-missing
