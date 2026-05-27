@@ -8,11 +8,9 @@ from app.schemas.user import UserCreate
 from app.core.security import (
     DUMMY_PASSWORD_HASH,
     create_access_token,
-    verify_password,
     create_refresh_token,
     hash_password,
     hash_token,
-    verify_password,
     decode_refresh_token,
 )
 from app.core.config import settings
