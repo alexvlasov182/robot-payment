@@ -30,5 +30,10 @@ test:
     - echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
     - echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
     - echo "ALGORITHM=HS256" >> .env
+    - export PYTHONPATH=$CI_PROJECT_DIR
+    - echo "PYTHONPATH=$PYTHONPATH"
   script:
+    - cd $CI_PROJECT_DIR
+    - python -c "import sys; print(sys.path)"
+    - python -c "from app.main import app; print('Import OK')"
     - pytest -v --cov=app --cov-report=term-missing
