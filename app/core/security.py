@@ -1,7 +1,6 @@
-"""Scurity configuration"""
+"""Security configuration"""
 
 from datetime import datetime, timedelta, timezone
-
 from typing import Optional
 from jose import jwt
 import hashlib
@@ -22,7 +21,7 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a pasword against its hash"""
+    """Verify a password against its hash"""
     return pwd_context.verify(plain_password, hashed_password)
 
 
@@ -42,10 +41,13 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
             minutes=settings.access_token_expire_minutes
         )
 
-    # python-jsoe expects `exp` aus Unix timestamp (seconds)
-
-    to_encode.update({"exp": int(expire.timestamp()), "type": "refresh"})
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithms)
+    # python-jose expects `exp` as Unix timestamp (seconds)
+    to_encode.update(
+        {"exp": int(expire.timestamp()), "type": "access"}
+    )  # Fixed: "access" not "refresh"
+    return jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )  # Fixed: algorithm not algorithms
 
 
 def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -60,14 +62,18 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
         )
 
     to_encode.update({"exp": int(expire.timestamp()), "type": "refresh"})
-    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithms)
+    return jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )  # Fixed: algorithm not algorithms
 
 
 def decode_access_token(token: str) -> Optional[str]:
     """Decode JWT token and return subject (email)"""
     try:
         payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithms]
+            token,
+            settings.secret_key,
+            algorithms=[settings.algorithm],  # Fixed: use settings.algorithm in list
         )
         # Verify it's an access token
         if payload.get("type") != "access":
@@ -81,7 +87,9 @@ def decode_refresh_token(token: str) -> Optional[str]:
     """Decode refresh token and return subject (email)"""
     try:
         payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithms]
+            token,
+            settings.secret_key,
+            algorithms=[settings.algorithm],  # Fixed: use settings.algorithm in list
         )
         # Verify it's a refresh token
         if payload.get("type") != "refresh":

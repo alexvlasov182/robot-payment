@@ -1,5 +1,7 @@
 """Main file fot the Auth Schemas"""
 
+from typing import Optional
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
@@ -32,7 +34,9 @@ class TokenResponse(BaseModel):
     """Response schema for login"""
 
     access_token: str = Field(..., description="JWT access token")
-    refresh_token: str = Field(..., description="JWT refresh token")
+    refresh_token: Optional[str] = Field(None, description="Refresh token (optional)")
+    token_type: str = Field(default="bearer", description="Token type")
+    expires_in: int = Field(default=1800, description="Token expiration in seconds")
 
 
 class RefreshTokenRequest(BaseModel):
