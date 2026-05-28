@@ -1,7 +1,7 @@
 """Main file for the robot schemas"""
 
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from app.models.robot import RobotType
 
 
@@ -36,7 +36,4 @@ class RobotResponse(BaseModel):
     serial_number: str
     capabilities: Optional[str]
 
-    class Config:
-        """Class config"""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

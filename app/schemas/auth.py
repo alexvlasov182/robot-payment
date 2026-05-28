@@ -8,8 +8,8 @@ from pydantic import BaseModel, EmailStr, Field, field_validator
 class UserRegister(BaseModel):
     """Request schema for user registration"""
 
-    email: EmailStr = Field(..., description="User eamil address")
-    password: str = Field(..., min_length=6, description="User passwrod")
+    email: EmailStr = Field(..., description="User email address")
+    password: str = Field(..., min_length=6, description="User password")
     confirm_password: str = Field(..., description="Confirm password")
 
     @field_validator("password")
@@ -18,7 +18,7 @@ class UserRegister(BaseModel):
         """Require a minumum bar beyond length"""
         if not any(ch.isalpha() for ch in value):
             raise ValueError("Password must contain at least one letter")
-        if not any(ch.isalpha() for ch in value):
+        if not any(ch.isdigit() for ch in value):
             raise ValueError("Password must contain at least one digit")
         return value
 

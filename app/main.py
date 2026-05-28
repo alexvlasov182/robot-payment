@@ -7,7 +7,7 @@ from app.core.database import engine, Base
 from app.api.v1 import auth, robots, terminals, health
 
 # Create database tables (only once, when app starts)
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)  # TODO I need to use Alembic
 
 app = FastAPI(
     title=settings.app_name,
