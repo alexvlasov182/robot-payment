@@ -3,7 +3,12 @@
 from sqlalchemy.orm import Session
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate
-from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token
+from app.core.security import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    create_refresh_token,
+)
 
 
 class AuthService:
@@ -44,6 +49,7 @@ class AuthService:
     def refresh_token(self, refresh_token: str) -> dict:
         """Refresh access token"""
         from app.core.security import decode_refresh_token
+
         email = decode_refresh_token(refresh_token)
         if not email:
             raise ValueError("Invalid refresh token")

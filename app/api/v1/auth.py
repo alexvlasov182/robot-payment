@@ -44,16 +44,16 @@ async def login(
     try:
         # authenticate_user returns a dictionary with 'id' and 'email' keys
         user_dict = auth_service.authenticate_user(user_data.email, user_data.password)
-        
+
         # Access email as dictionary key
         access_token = create_access_token(data={"sub": user_dict["email"]})
         refresh_token = create_refresh_token(data={"sub": user_dict["email"]})
-        
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            expires_in=1800
+            expires_in=1800,
         )
     except ValueError as e:
         raise HTTPException(
