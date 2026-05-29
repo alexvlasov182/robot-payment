@@ -13,7 +13,6 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     "/register",
     status_code=status.HTTP_201_CREATED,
     summary="Register new user",
-    description="Create a new user account",
 )
 async def register(
     user_data: UserRegister, auth_service: AuthService = Depends(get_auth_service)
@@ -37,25 +36,24 @@ async def register(
     "/login",
     response_model=TokenResponse,
     summary="Login user",
-    description="Authenticate and get JWT tokens",
 )
 async def login(
     user_data: UserLogin, auth_service: AuthService = Depends(get_auth_service)
 ):
-    """Login and get access token + refresh token"""
+    """Login and get access token"""
     try:
-        # Authenticate user
-        user = auth_service.authenticate_user(user_data.email, user_data.password)
-
-        # Create both tokens
-        access_token = create_access_token(data={"sub": user["email"]})
-        refresh_token = create_refresh_token(data={"sub": user["email"]})
-
+        # authenticate_user returns a dictionary with 'id' and 'email' keys
+        user_dict = auth_service.authenticate_user(user_data.email, user_data.password)
+        
+        # Access email as dictionary key
+        access_token = create_access_token(data={"sub": user_dict["email"]})
+        refresh_token = create_refresh_token(data={"sub": user_dict["email"]})
+        
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
             token_type="bearer",
-            expires_in=1800,
+            expires_in=1800
         )
     except ValueError as e:
         raise HTTPException(
