@@ -34,7 +34,7 @@ class AuthService:
         if not user:
             raise ValueError("Invalid credentials")
 
-        if not verify_password(password, user.hashed_password):
+        if not verify_password(password, user.hashed_password):  # type: ignore
             raise ValueError("Invalid credentials")
 
         # Return dictionary, not SQLAlchemy object
@@ -58,8 +58,7 @@ class AuthService:
         if not user:
             raise ValueError("User not found")
 
-        return self.get_tokens(user.email)
+        return self.get_tokens(user.email)  # type: ignore
 
     def logout(self, email: str) -> None:
         """Logout user"""
-        pass

@@ -36,7 +36,7 @@ def test_register_user_email_already_exists():
 
 
 def test_authenticate_user_success():
-    """Authenticate returns tokens for valid credentials"""
+    """Authenticate returns user data for valid credentials"""
     mock_db = MagicMock()
     service = AuthService(db=mock_db)
 
@@ -50,8 +50,10 @@ def test_authenticate_user_success():
     with patch("app.services.auth_service.verify_password", return_value=True):
         result = service.authenticate_user("test@example.com", "test123")
 
-    assert result["access_token"] is not None
-    assert "refresh_token" in result
+    # Should return user dict, not tokens
+    assert result["id"] == 1
+    assert result["email"] == "test@example.com"
+    assert "access_token" not in result
 
 
 def test_authenticate_user_wrong_password():
@@ -85,13 +87,13 @@ def test_authenticate_user_user_not_found():
 
 def test_refresh_token_invalid():
     """Refresh fails if token is invalid"""
-
     mock_db = MagicMock()
     service = AuthService(db=mock_db)
 
-    with patch("app.services.auth_service.decode_refresh_token", return_value=None):
-        with pytest.raises(ValueError):
-            service.refresh_token("invalid.token.here")
+    # Patch the actual function where it's defined
+    with patch("app.core.security.decode_refresh_token", return_value=None):
+        with pytest.raises(ValueError, match="Invalid refresh token"):
+            service.refresh_token("invalid_token")
 
 
 def test_logout_success():
