@@ -1,7 +1,7 @@
 """Model for the Robots"""
 
 import enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum, text, DateTime
+from sqlalchemy import Column, Integer, String, Enum as SQLEnum, DateTime, func
 from app.core.database import Base
 
 
@@ -25,4 +25,4 @@ class Robot(Base):
     status = Column(String, default="offline")
     serial_number = Column(String, unique=True, nullable=False)
     capabilities = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=text("NOW()"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

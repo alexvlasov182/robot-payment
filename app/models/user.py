@@ -1,6 +1,6 @@
 """Model for the User"""
 
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, text
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, func
 from app.core.database import Base
 
 
@@ -21,4 +21,4 @@ class User(Base):
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email})>"
 
-    created_at = Column(DateTime(timezone=True), server_default=text("NOW()"))
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
