@@ -40,7 +40,7 @@ class TokenResponse(BaseModel):
 
 
 class RefreshTokenRequest(BaseModel):
-    """Request schema for toekn refresh"""
+    """Request schema for token refresh"""
 
     refresh_token: str = Field(..., description="Refresh token")
 

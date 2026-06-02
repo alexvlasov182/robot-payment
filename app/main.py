@@ -1,10 +1,15 @@
 """Main app"""
 
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.v1 import auth, robots, terminals, health
+from app.core.logging_config import setup_logging
+
+Path("logs").mkdir(exist_ok=True)
+setup_logging()
 
 # Create database tables (only once, when app starts)
 Base.metadata.create_all(bind=engine)  # TODO I need to use Alembic

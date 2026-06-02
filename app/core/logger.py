@@ -21,7 +21,6 @@ class AppLogger:
             console_handler.setLevel(getattr(logging, log_level.upper()))
 
             # Create formater
-            # Create formater
             formatter = logging.Formatter(
                 "%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(extra_info)s",
                 datefmt="%Y-%m-%d %H:%M:%S",

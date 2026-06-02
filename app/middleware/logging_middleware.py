@@ -28,7 +28,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             request_id=request_id,
             method=request.method,
             path=request.url.path,
-            clien=request.client.host if request.client else "unknown",
+            client=request.client.host if request.client else "unknown",
         )
 
         try:

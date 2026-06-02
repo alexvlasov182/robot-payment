@@ -1,7 +1,7 @@
 """User schemas for request/response validation."""
 
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
 class UserCreate(BaseModel):
@@ -25,7 +25,4 @@ class UserResponse(BaseModel):
     email: EmailStr = Field(..., description="User email address")
     is_active: bool = Field(..., description="User active status")
 
-    class Config:
-        """Config for class"""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)  # pylint: disable=invalid-name

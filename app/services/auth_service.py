@@ -8,6 +8,7 @@ from app.core.security import (
     verify_password,
     create_access_token,
     create_refresh_token,
+    DUMMY_PASSWORD_HASH,
 )
 from app.core.logger import AppLogger
 
@@ -45,6 +46,7 @@ class AuthService:
 
         user = self.user_repo.get_by_email(email)
         if not user:
+            verify_password(password, DUMMY_PASSWORD_HASH)
             logger.warning(f"Login failed - user not found - email={email}")
             raise ValueError("Invalid credentials")
 
