@@ -9,7 +9,6 @@ from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
-    create_access_token,
 )
 from app.core.config import settings
 from loguru import logger
