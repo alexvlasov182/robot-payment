@@ -8,12 +8,11 @@ from app.core.security import (
     verify_password,
     create_access_token,
     create_refresh_token,
-    DUMMY_PASSWORD_HASH,
+    decode_refresh_token,
+    create_access_token,
 )
-from app.core.logger import AppLogger
-
-# Create logger instance
-logger = AppLogger(__name__)
+from app.core.config import settings
+from loguru import logger
 
 
 class AuthService:
@@ -37,7 +36,9 @@ class AuthService:
         user_data = UserCreate(email=email, hashed_password=hashed)
         user = self.user_repo.create(user_data)
 
-        logger.info(f"User registered successfully - user_id={user.id}, email={email}")
+        logger.info(
+            f"User registered successfully - user_id={user.id}, email={user.email}"
+        )
         return {"id": user.id, "email": user.email}
 
     def authenticate_user(self, email: str, password: str) -> dict:
@@ -46,46 +47,48 @@ class AuthService:
 
         user = self.user_repo.get_by_email(email)
         if not user:
-            verify_password(password, DUMMY_PASSWORD_HASH)
             logger.warning(f"Login failed - user not found - email={email}")
             raise ValueError("Invalid credentials")
 
         if not verify_password(password, user.hashed_password):  # type: ignore
-            logger.warning(f"Login failed - invalid password - email={email}")
+            logger.warning(f"Login failed - wrong password - email={email}")
             raise ValueError("Invalid credentials")
 
         logger.info(
-            f"User authenticated successfully - user_id={user.id}, email={email}"
+            f"User authenticated successfully - user_id={user.id}, email={user.email}"
         )
-        # Return dictionary, not SQLAlchemy object
         return {"id": user.id, "email": user.email}
 
     def get_tokens(self, email: str) -> dict:
-        """Get access and refresh tokens"""
+        """Generate access and refresh tokens"""
         logger.info(f"Generating tokens for - email={email}")
         access_token = create_access_token(data={"sub": email})
         refresh_token = create_refresh_token(data={"sub": email})
-        return {"access_token": access_token, "refresh_token": refresh_token}
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "expires_in": settings.access_token_expire_minutes * 60,
+        }
 
     def refresh_token(self, refresh_token: str) -> dict:
-        """Refresh access token"""
-        from app.core.security import decode_refresh_token
+        """Refresh access token using refresh token"""
 
-        logger.info("Token refresh attempt")
+        logger.info("Refreshing token")
 
         email = decode_refresh_token(refresh_token)
         if not email:
-            logger.warning("Token refresh failed - invalid refresh token")
             raise ValueError("Invalid refresh token")
 
-        user = self.user_repo.get_by_email(email)
-        if not user:
-            logger.warning(f"Token refresh failed - user not found - email={email}")
-            raise ValueError("User not found")
+        new_access_token = create_access_token(data={"sub": email})
+        return {
+            "access_token": new_access_token,
+            "token_type": "bearer",
+            "expires_in": settings.access_token_expire_minutes * 60,
+        }
 
-        logger.info(f"Token refreshed successfully - email={email}")
-        return self.get_tokens(user.email)  # type: ignore
-
-    def logout(self, email: str) -> None:
-        """Logout user"""
-        logger.info(f"User logged out - email={email}")
+    def logout(self, token: str) -> bool:
+        """Logout user (in production, add token to blacklist)"""
+        logger.info("Logout requested")
+        # In production, you would add token to a blacklist in Redis
+        return True

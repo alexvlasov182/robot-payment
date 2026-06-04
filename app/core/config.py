@@ -8,12 +8,12 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
 
     app_name: str = "Robot Payment Testing"
-    app_env: Literal["development", "staging", "production"] = "development"
+    app_env: Literal["development", "staging", "production", "testing"] = "development"
     debug: bool = True
     secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
-    refresh_token_expire_days: int = 7
+    refresh_token_expire_days: int = 7  # ADD THIS LINE
     database_url: str
 
     @property

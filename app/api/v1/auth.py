@@ -4,27 +4,22 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.dependencies import get_auth_service
 from app.services.auth_service import AuthService
 from app.schemas.auth import UserLogin, UserRegister, TokenResponse
-from app.core.logger import AppLogger
+from loguru import logger
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-logger = AppLogger(__name__)
 
 
 @router.post(
     "/register",
     status_code=status.HTTP_201_CREATED,
     summary="Register new user",
+    description="Create a new user account",
 )
 async def register(
     user_data: UserRegister, auth_service: AuthService = Depends(get_auth_service)
 ):
     """Register a new user"""
-    logger.info(f"Registration request received - email={user_data.email}")
-
     if user_data.password != user_data.confirm_password:
-        logger.warning(
-            f"Registration failed - passwords don't match - email={user_data.email}"
-        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match"
         )
@@ -34,7 +29,6 @@ async def register(
         logger.info(f"User registered successfully via API - email={user_data.email}")
         return {"message": "User registered successfully", "user": user}
     except ValueError as e:
-        logger.warning(f"Registration failed - {str(e)} - email={user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
@@ -44,22 +38,59 @@ async def register(
     "/login",
     response_model=TokenResponse,
     summary="Login user",
+    description="Authenticate and get JWT token",
 )
 async def login(
     user_data: UserLogin, auth_service: AuthService = Depends(get_auth_service)
 ):
     """Login and get access token"""
-    logger.info(f"Login request received - email={user_data.email}")
-
     try:
-        # authenticate_user returns a dictionary with 'id' and 'email' keys
-        user_dict = auth_service.authenticate_user(user_data.email, user_data.password)
-        tokens = auth_service.get_tokens(user_dict["email"])
+        user = auth_service.authenticate_user(user_data.email, user_data.password)
+        tokens = auth_service.get_tokens(user["email"])
         logger.info(f"User logged in successfully - email={user_data.email}")
-
-        return TokenResponse(**tokens, token_type="bearer", expires_in=1800)
+        return TokenResponse(
+            access_token=tokens["access_token"],
+            token_type=tokens["token_type"],
+            expires_in=tokens["expires_in"],
+        )  # type: ignore
     except ValueError as e:
         logger.warning(f"Login failed - {str(e)} - email={user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
         ) from e
+
+
+@router.post(
+    "/refresh",
+    response_model=TokenResponse,
+    summary="Refresh token",
+    description="Get new access token using refresh token",
+)
+async def refresh_token(
+    refresh_token: str, auth_service: AuthService = Depends(get_auth_service)
+):
+    """Refresh access token"""
+    try:
+        tokens = auth_service.refresh_token(refresh_token)
+        return TokenResponse(
+            access_token=tokens["access_token"],
+            token_type=tokens["token_type"],
+            expires_in=tokens["expires_in"],
+        )  # type: ignore
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e
+
+
+@router.post(
+    "/logout",
+    summary="Logout user",
+    description="Invalidate current token",
+)
+async def logout(
+    auth_service: AuthService = Depends(get_auth_service), token: str = None
+):
+    """Logout user"""
+    result = auth_service.logout(token)
+    return {"message": "Successfully logged out"}

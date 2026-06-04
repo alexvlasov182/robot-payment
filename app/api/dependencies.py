@@ -11,7 +11,7 @@ from app.services.robot_service import RobotService
 from app.services.terminal_services import TerminalService
 
 # Security
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)  # Don't auto-raise error
 
 
 # Service factories
@@ -35,6 +35,14 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> dict:
     """Get current authenticated user"""
+    # If no credentials provided, raise 401
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     token = credentials.credentials
     email = decode_access_token(token)
 
@@ -45,5 +53,4 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    auth_service = AuthService(db)
-    return {"email": email, "auth_service": auth_service}
+    return {"email": email}
