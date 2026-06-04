@@ -88,9 +88,7 @@ async def refresh_token(
     summary="Logout user",
     description="Invalidate current token",
 )
-async def logout(
-    auth_service: AuthService = Depends(get_auth_service), token: str = None
-):
+async def logout():
     """Logout user"""
-    result = auth_service.logout(token)
+
     return {"message": "Successfully logged out"}
