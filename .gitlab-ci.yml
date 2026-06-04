@@ -4,6 +4,7 @@ stages:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONPATH: "$$CI_PROJECT_DIR"
 
 cache:
   paths:
@@ -17,6 +18,7 @@ lint:
   script:
     - ruff check app/
     - ruff format --check app/
+  allow_failure: false
 
 test:
   stage: test

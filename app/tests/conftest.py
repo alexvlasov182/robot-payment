@@ -76,18 +76,18 @@ def db() -> Session:
 @pytest.fixture(scope="function")
 def client(db: Session) -> TestClient:
     """Create test client with database override"""
-    
+
     def override_get_db_test():
         try:
             yield db
         finally:
             pass
-    
+
     app.dependency_overrides[get_db] = override_get_db_test
-    
+
     with TestClient(app) as test_client:
         yield test_client
-    
+
     app.dependency_overrides.clear()
 
 
@@ -96,9 +96,7 @@ def test_user(db: Session):
     """Create a test user"""
     hashed_password = hash_password("testpassword123")
     user = User(
-        email="testuser@example.com",
-        hashed_password=hashed_password,
-        is_active=True
+        email="testuser@example.com", hashed_password=hashed_password, is_active=True
     )
     db.add(user)
     db.commit()
@@ -114,7 +112,7 @@ def test_robot(db: Session, test_user):
         robot_type=RobotType.T4,
         serial_number="TEST-001",
         status="offline",
-        capabilities="tap,chip,swipe"
+        capabilities="tap,chip,swipe",
     )
     db.add(robot)
     db.commit()
@@ -125,9 +123,9 @@ def test_robot(db: Session, test_user):
 @pytest.fixture(scope="function")
 def auth_headers(client: TestClient, test_user):
     """Get authentication headers"""
-    response = client.post("/api/v1/auth/login", json={
-        "email": test_user.email,
-        "password": "testpassword123"
-    })
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpassword123"},
+    )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
