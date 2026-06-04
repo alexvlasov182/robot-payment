@@ -10,5 +10,5 @@ pydantic==2.9.0
 pydantic-settings==2.5.0
 python-dotenv==1.0.0
 email-validator==2.1.0
-alembic==1.13.0lgouru==0.7.3
+alembic==1.13.0
 loguru==0.7.3
