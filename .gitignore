@@ -9,3 +9,4 @@ htmlcov/
 .DS_Store
 .venv/
 .*log
+logs/app.log

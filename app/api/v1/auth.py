@@ -67,11 +67,11 @@ async def login(
     description="Get new access token using refresh token",
 )
 async def refresh_token(
-    refresh_token: str, auth_service: AuthService = Depends(get_auth_service)
+    refresh_token_value: str, auth_service: AuthService = Depends(get_auth_service)
 ):
     """Refresh access token"""
     try:
-        tokens = auth_service.refresh_token(refresh_token)
+        tokens = auth_service.refresh_token(refresh_token_value)
         return TokenResponse(
             access_token=tokens["access_token"],
             token_type=tokens["token_type"],

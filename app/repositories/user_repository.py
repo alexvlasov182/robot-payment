@@ -17,6 +17,7 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
         """Get user by email address"""
         normalized = str(email).strip().lower()
         return self.db.query(User).filter(User.email == normalized).first()
+        # TODO raw SQL
 
     def exists_by_email(self, email: str) -> bool:
         """Check if user exists by email"""
