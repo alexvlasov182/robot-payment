@@ -28,10 +28,10 @@ class RobotService:
         """Get robot by ID"""
         return self.robot_repo.get(robot_id)
 
-    def update_robot_status(self, robot_id: int, status: str) -> Optional[Robot]:
+    def update_robot_status(self, robot_id: int, data: RobotUpdate) -> Optional[Robot]:
         """Update robot status"""
-        update_data = RobotUpdate(status=status)
-        return self.robot_repo.update(robot_id, update_data)
+
+        return self.robot_repo.update(robot_id, data)
 
     def delete_robot(self, robot_id: int) -> bool:
         """Delete robot"""

@@ -13,8 +13,6 @@ sys.path.insert(0, dirname(dirname(abspath(__file__))))
 
 # Import your Base and models
 from app.core.database import Base
-from app.models.user import User
-from app.models.robot import Robot
 
 # This is the Alembic Config object
 config = context.config

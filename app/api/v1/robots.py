@@ -4,7 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from app.api.dependencies import get_robot_service, get_current_user
 from app.services.robot_service import RobotService
-from app.schemas.robot import RobotCreate, RobotResponse
+from app.schemas.robot import RobotCreate, RobotResponse, RobotUpdate
 
 router = APIRouter(prefix="/robots", tags=["Robots"])
 
@@ -72,12 +72,12 @@ async def get_robot(
 )
 async def update_robot_status(
     robot_id: int,
-    status: str,  # ← FIXED: parameter name must match query param
+    data: RobotUpdate,
     robot_service: RobotService = Depends(get_robot_service),
     _current_user: dict = Depends(get_current_user),
 ):
     """Update robot status (authentication required)"""
-    robot = robot_service.update_robot_status(robot_id, status)
+    robot = robot_service.update_robot_status(robot_id, data)  # type: ignore
     if not robot:
         raise HTTPException(status_code=404, detail="Robot not found")
     return robot

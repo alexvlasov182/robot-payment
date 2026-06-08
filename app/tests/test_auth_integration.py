@@ -85,9 +85,11 @@ class TestRobotIntegration:
         assert read.status_code == 200
         assert read.json()["name"] == "Integration Robot"
 
-        # 3. UPDATE status - using query parameter, NOT JSON body
+        # 3. UPDATE
         update = client.patch(
-            f"/api/v1/robots/{robot_id}/status?status=online", headers=headers
+            f"/api/v1/robots/{robot_id}/status",
+            headers=headers,
+            json={"status": "online"},
         )
         assert update.status_code == 200
         assert update.json()["status"] == "online"

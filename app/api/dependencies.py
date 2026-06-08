@@ -11,7 +11,7 @@ from app.services.robot_service import RobotService
 from app.services.terminal_services import TerminalService
 
 # Security
-security = HTTPBearer(auto_error=False)  # Don't auto-raise error
+security = HTTPBearer(auto_error=False)
 
 
 # Service factories

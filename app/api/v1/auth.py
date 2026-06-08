@@ -52,7 +52,7 @@ async def login(
             access_token=tokens["access_token"],
             token_type=tokens["token_type"],
             expires_in=tokens["expires_in"],
-        )  # type: ignore
+        )  # pyright: ignore[reportCallIssue]
     except ValueError as e:
         logger.warning(f"Login failed - {str(e)} - email={user_data.email}")
         raise HTTPException(
