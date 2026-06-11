@@ -60,13 +60,13 @@ def setup_database():
 
 
 @pytest.fixture(scope="function")
-def db() -> Session:
+def db() -> Session:  # type: ignore
     """Get database session for testing"""
     connection = engine.connect()
     transaction = connection.begin()
     session = TestingSessionLocal(bind=connection)
 
-    yield session
+    yield session  # type: ignore
 
     session.close()
     transaction.rollback()
@@ -74,38 +74,38 @@ def db() -> Session:
 
 
 @pytest.fixture(scope="function")
-def client(db: Session) -> TestClient:
+def client(db_session: Session) -> TestClient:  # type: ignore
     """Create test client with database override"""
 
     def override_get_db_test():
         try:
-            yield db
+            yield db_session
         finally:
             pass
 
     app.dependency_overrides[get_db] = override_get_db_test
 
     with TestClient(app) as test_client:
-        yield test_client
+        yield test_client  # type: ignore
 
     app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function")
-def test_user(db: Session):
+def test_user(db_session: Session):  # type: ignore
     """Create a test user"""
     hashed_password = hash_password("testpassword123")
     user = User(
         email="testuser@example.com", hashed_password=hashed_password, is_active=True
     )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
     return user
 
 
 @pytest.fixture(scope="function")
-def test_robot(db: Session, test_user):
+def test_robot(db_session: Session):
     """Create a test robot"""
     robot = Robot(
         name="Test Robot T4",
@@ -114,14 +114,14 @@ def test_robot(db: Session, test_user):
         status="offline",
         capabilities="tap,chip,swipe",
     )
-    db.add(robot)
-    db.commit()
-    db.refresh(robot)
+    db_session.add(robot)
+    db_session.commit()
+    db_session.refresh(robot)
     return robot
 
 
 @pytest.fixture(scope="function")
-def auth_headers(client: TestClient, test_user):
+def auth_headers(client: TestClient, test_user):  # type: ignore
     """Get authentication headers"""
     response = client.post(
         "/api/v1/auth/login",

@@ -86,7 +86,7 @@ class AuthService:
             "expires_in": settings.access_token_expire_minutes * 60,
         }
 
-    def logout(self, token: str) -> bool:
+    def logout(self) -> bool:
         """Logout user (in production, add token to blacklist)"""
         logger.info("Logout requested")
         # In production, you would add token to a blacklist in Redis

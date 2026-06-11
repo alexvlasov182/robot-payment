@@ -32,7 +32,6 @@ def get_terminal_service() -> TerminalService:
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
 ) -> dict:
     """Get current authenticated user"""
     # If no credentials provided, raise 401
