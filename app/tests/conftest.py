@@ -129,3 +129,9 @@ def auth_headers(client: TestClient, test_user):  # type: ignore
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture(scope="function")
+def db_session(db: Session) -> Session:
+    """Alias for db fixture to maintain compatibility with existing tests"""
+    yield db
