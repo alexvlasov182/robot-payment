@@ -1,55 +1,95 @@
-.PHONY: help install run test lint format type docker-build docker-run docker-test docker-quality clean
+SHELL := /bin/bash
+.SHELLFLAGS := -eo pipefail -c
+
+PYTHON      ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else command -v python3; fi)
+COMPOSE     ?= docker compose
+CONTAINER   ?= robot-api
+PYTEST_ARGS ?=
+
+.PHONY: help install install-dev run test test-cov lint lint-fix format typecheck check clean \
+        docker-build docker-up docker-up-detached docker-down docker-reset docker-logs docker-shell docker-test
 
 help:
-	@echo "Robot Payment Platform Commands:"
-	@echo "  make install      - Install dependencies"
-	@echo "  make run          - Run application locally"
-	@echo "  make test         - Run tests"
-	@echo "  make lint         - Run linter"
-	@echo "  make format       - Format code"
-	@echo "  make type         - Run type checking"
-	@echo "  make docker-build - Build Docker image"
-	@echo "  make docker-run   - Run Docker container"
-	@echo "  make docker-test  - Run tests in Docker"
-	@echo "  make docker-quality - Run all quality checks in Docker"
-	@echo "  make clean        - Clean cache files"
+	@echo ""
+	@echo "Robot Payment Platform"
+	@echo ""
+	@echo "  Local (uses .venv if present)"
+	@echo "  make install        Install runtime dependencies"
+	@echo "  make install-dev    + ruff, mypy, pytest, httpx"
+	@echo "  make run            Start API on :8000 with reload"
+	@echo "  make test           Run tests"
+	@echo "  make test-cov       Run tests with coverage"
+	@echo "  make check          lint + typecheck + test (run before commit)"
+	@echo "  make clean          Delete cache folders"
+	@echo ""
+	@echo "  Docker"
+	@echo "  make docker-build          Build images"
+	@echo "  make docker-up             Start stack, logs in terminal"
+	@echo "  make docker-up-detached    Start stack in background"
+	@echo "  make docker-down           Stop stack"
+	@echo "  make docker-reset          Stop stack and delete volumes (clean DB)"
+	@echo "  make docker-logs           Follow API logs"
+	@echo "  make docker-shell          Shell inside API container"
+	@echo "  make docker-test           Run pytest inside container"
+	@echo ""
+	@echo "  Tip: make test PYTEST_ARGS=\"-k auth\""
+	@echo ""
 
 install:
-	pip install -r requirements.txt
-	pip install ruff mypy pytest pytest-cov httpx
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install -r requirements.txt
 
-# run:
-# 	uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# test:
-# 	pytest -v --cov=app --cov-report=term-missing
-
-# lint:
-# 	ruff check app/
-
-# format:
-# 	ruff format app/
-
-type:
-	mypy app/ --ignore-missing-imports
-
-build:
-	docker build -t robot-payment-api .
+install-dev: install
+	$(PYTHON) -m pip install ruff mypy pytest pytest-cov httpx
 
 run:
-	docker-compose up -d
-
-stop:
-	docker-compose down
+	$(PYTHON) -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 test:
-	docker exec -it robot-api pytest -v --cov=app --cov-report=term-missing
+	$(PYTHON) -m pytest app/tests $(PYTEST_ARGS)
+
+test-cov:
+	$(PYTHON) -m pytest --cov=app --cov-report=term-missing app/tests $(PYTEST_ARGS)
 
 lint:
-	docker exec -it robot-api ruff check app/
+	$(PYTHON) -m ruff check app/
+
+lint-fix:
+	$(PYTHON) -m ruff check --fix app/
+	$(PYTHON) -m ruff format app/
 
 format:
-	docker exec -it robot-api ruff format app/
+	$(PYTHON) -m ruff format app/
 
-type:
-	docker exec -it robot-api mypy app/ --ignore-missing-imports
+typecheck:
+	$(PYTHON) -m mypy app/ --ignore-missing-imports
+
+check: lint typecheck test
+
+clean:
+	rm -rf .pytest_cache .ruff_cache .mypy_cache htmlcov .coverage
+	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
+
+docker-build:
+	$(COMPOSE) build
+
+docker-up:
+	$(COMPOSE) up --build
+
+docker-up-detached:
+	$(COMPOSE) up -d --build
+
+docker-down:
+	$(COMPOSE) down
+
+docker-reset:
+	$(COMPOSE) down -v
+
+docker-logs:
+	$(COMPOSE) logs -f $(CONTAINER)
+
+docker-shell:
+	$(COMPOSE) exec $(CONTAINER) sh
+
+docker-test:
+	$(COMPOSE) exec -T $(CONTAINER) python -m pytest app/tests $(PYTEST_ARGS)

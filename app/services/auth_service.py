@@ -1,17 +1,18 @@
 """Services main file"""
 
+from loguru import logger
 from sqlalchemy.orm import Session
-from app.repositories.user_repository import UserRepository
-from app.schemas.user import UserCreate
+
+from app.core.config import settings
 from app.core.security import (
-    hash_password,
-    verify_password,
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
+    hash_password,
+    verify_password,
 )
-from app.core.config import settings
-from loguru import logger
+from app.repositories.user_repository import UserRepository
+from app.schemas.user import UserCreate
 
 
 class AuthService:
@@ -86,7 +87,7 @@ class AuthService:
             "expires_in": settings.access_token_expire_minutes * 60,
         }
 
-    def logout(self) -> bool:
+    def logout(self, token: str) -> bool:
         """Logout user (in production, add token to blacklist)"""
         logger.info("Logout requested")
         # In production, you would add token to a blacklist in Redis
