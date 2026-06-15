@@ -34,6 +34,6 @@ test:
     - echo "ALGORITHM=HS256" >> .env
     - export PYTHONPATH=$CI_PROJECT_DIR
   script:
-    - pytest -v --cov=app --cov-report=term-missing --ignore=app/tests/test_auth_unit.py --ignore=app/tests/test_integration.py
+    - pytest -v --cov=app --cov-report=term-missing
 
     # Some string for test

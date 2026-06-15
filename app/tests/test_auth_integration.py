@@ -35,8 +35,6 @@ class TestAuthIntegration:
         )
         assert robots.status_code == 200
 
-        return token
-
     def test_cannot_access_protected_without_token(self, client: TestClient):
         """Test protected endpoint without token returns 401"""
         response = client.get("/api/v1/robots/")

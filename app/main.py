@@ -7,14 +7,11 @@ from starlette.middleware.cors import CORSMiddleware  # type: ignore
 
 from app.api.v1 import auth, health, robots, terminals
 from app.core.config import settings
-from app.core.database import Base, engine
+
 from app.core.logging_config import setup_logging
 
 Path("logs").mkdir(exist_ok=True)
 setup_logging()
-
-# Create database tables (only once, when app starts)
-Base.metadata.create_all(bind=engine)  # TODO I need to use Alembic
 
 app = FastAPI(
     title=settings.app_name,
