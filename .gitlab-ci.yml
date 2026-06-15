@@ -64,7 +64,7 @@ deploy:
         echo 'ALGORITHM=HS256' >> .env
         echo 'ACCESS_TOKEN_EXPIRE_MINUTES=30' >> .env
         echo 'REFRESH_TOKEN_EXPIRE_DAYS=7' >> .env
-        docker compose -f docker-compose.prod.yml up -d --build
+        sudo docker compose -f docker-compose.prod.yml up -d --build
       "
   only:
     - main
