@@ -50,21 +50,24 @@ deploy:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
   script:
     - |
-      ssh $EC2_USER@$EC2_HOST "
+      ssh $EC2_USER@$EC2_HOST \
+        "DATABASE_URL='$PRODUCTION_DATABASE_URL' SECRET_KEY='$PRODUCTION_SECRET_KEY' bash -s" << 'ENDSSH'
+        set -e
         if [ ! -d ~/robot-payment ]; then
-          git clone https://gitlab.com/$CI_PROJECT_PATH.git ~/robot-payment
+          git clone https://gitlab.com/alexvlasov182/robot-payment.git ~/robot-payment
         fi
         cd ~/robot-payment
         git fetch --all
         git reset --hard origin/main
-        echo 'DATABASE_URL=${PRODUCTION_DATABASE_URL}' > .env
-        echo 'SECRET_KEY=${PRODUCTION_SECRET_KEY}' >> .env
-        echo 'APP_ENV=production' >> .env
-        echo 'DEBUG=false' >> .env
-        echo 'ALGORITHM=HS256' >> .env
-        echo 'ACCESS_TOKEN_EXPIRE_MINUTES=30' >> .env
-        echo 'REFRESH_TOKEN_EXPIRE_DAYS=7' >> .env
+        echo "DATABASE_URL=$DATABASE_URL" > .env
+        echo "SECRET_KEY=$SECRET_KEY" >> .env
+        echo "APP_ENV=production" >> .env
+        echo "DEBUG=false" >> .env
+        echo "ALGORITHM=HS256" >> .env
+        echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+        echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
         sudo docker compose -f docker-compose.prod.yml up -d --build
-      "
+        sudo docker exec robot-api alembic upgrade head
+      ENDSSH
   only:
     - main
