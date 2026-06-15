@@ -1,0 +1,20 @@
+services:
+  api:
+    build: .
+    container_name: robot-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      APP_ENV: production
+      DEBUG: false
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - robot-net
+
+networks:
+  robot-net:
+    driver: bridge

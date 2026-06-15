@@ -1,6 +1,7 @@
 stages:
   - lint
   - test
+  - deploy
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -36,4 +37,34 @@ test:
   script:
     - pytest -v --cov=app --cov-report=term-missing
 
-    # Some string for test
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk update && apk add openssh-client
+    - eval $(ssh-agent -s)
+    - chmod 400 "$SSH_PRIVATE_KEY"
+    - ssh-add "$SSH_PRIVATE_KEY"
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+  script:
+    - |
+      ssh $EC2_USER@$EC2_HOST "
+        if [ ! -d ~/robot-payment ]; then
+          git clone https://gitlab.com/$CI_PROJECT_PATH.git ~/robot-payment
+        fi
+        cd ~/robot-payment
+        git fetch --all
+        git reset --hard origin/main
+        echo 'DATABASE_URL=${PRODUCTION_DATABASE_URL}' > .env
+        echo 'SECRET_KEY=${PRODUCTION_SECRET_KEY}' >> .env
+        echo 'APP_ENV=production' >> .env
+        echo 'DEBUG=false' >> .env
+        echo 'ALGORITHM=HS256' >> .env
+        echo 'ACCESS_TOKEN_EXPIRE_MINUTES=30' >> .env
+        echo 'REFRESH_TOKEN_EXPIRE_DAYS=7' >> .env
+        docker compose -f docker-compose.prod.yml up -d --build
+      "
+  only:
+    - main
