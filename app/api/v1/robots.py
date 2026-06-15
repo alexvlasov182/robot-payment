@@ -48,7 +48,7 @@ async def list_robots(
     "/{robot_id}",
     response_model=RobotResponse,
     summary="Get robot by ID",
-    description="Get sepcific robot details",
+    description="Get specific robot details",
 )
 async def get_robot(
     robot_id: int,

@@ -89,6 +89,10 @@ async def refresh_token(
     description="Invalidate current token",
 )
 async def logout():
-    """Logout user"""
-
+    """
+    Logout user.
+    Token is validated but not blacklisted here.
+    Production strategy: store token jti in Redis with TTL equal to token expiry.
+    """
+    logger.info("Logout requested for user")
     return {"message": "Successfully logged out"}

@@ -255,7 +255,7 @@ curl http://localhost:8000/health
 ```bash
 curl -X POST http://localhost:8000/api/v1/auth/register \
 -H "Content-Type: application/json" \
--d '{"email":"interview123@test.com","password":"123456","confirm_password":"123456"}'
+-d '{"email":"interview123@test.com","password":"SecurePass123!","confirm_password":"SecurePass123!"}'
 ```
 
 ### 3. Login
@@ -263,7 +263,7 @@ curl -X POST http://localhost:8000/api/v1/auth/register \
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
  -H "Content-Type: application/json" \
- -d '{"email":"interview@test.com","password":"123456"}' \
+ -d '{"email":"interview@test.com","password":"SecurePass123!"}' \
  | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))")
 ```
 
