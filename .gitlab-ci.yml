@@ -13,21 +13,7 @@ cache:
   paths:
     - .cache/pip
 
-build:
-  stage: build
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  script:
-    - export IMAGE_TAG=$(echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" | tr '[:upper:]' '[:lower:]')
-    # Use built-in CI_JOB_TOKEN (automatic, no variables needed)
-    - echo "$CI_PROJECT_DIR" | docker login -u "$CI_REGISTER_USER" --password-stdin "$CI_REGISTRY"
-    - docker build -f Dockerfile.prod -t "IMAGE_TAG"
-    - docker push "$IMAGE_TAG"
-    - docker logout "$CI_REGESTRY"
-
-  only: ["main"]
-
+# ========== LINT ==========
 lint:
   stage: lint
   image: python:3.12-slim
@@ -38,6 +24,23 @@ lint:
     - ruff format --check app/
   allow_failure: false
 
+# ========== BUILD ==========
+build:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - export IMAGE_TAG=$(echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" | tr '[:upper:]' '[:lower:]')
+    # Використовуємо стандартні змінні GitLab для входу
+    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker build -f Dockerfile.prod -t "$IMAGE_TAG" .
+    - docker push "$IMAGE_TAG"
+    - docker logout "$CI_REGISTRY"
+  only:
+    - main
+
+# ========== TEST ==========
 test:
   stage: test
   image: python:3.12-slim
@@ -54,29 +57,33 @@ test:
   script:
     - pytest -v --cov=app --cov-report=term-missing
 
+# ========== DEPLOY ==========
 deploy:
   stage: deploy
   tags:
     - ec2-runner-robot
   script:
     - export IMAGE_TAG=$(echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" | tr '[:upper:]' '[:lower:]')
-    # Login to registry (using CI_JOB_TOKEN is safer, but GI_REGISTRY_PASSWORD also works)
-    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTER_USER" --password-stdin "$CI_REGISTRY"
+    # Логін у реєстр (через CI_JOB_TOKEN)
+    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - docker pull "$IMAGE_TAG"
     - docker logout "$CI_REGISTRY"
+
     - mkdir -p /home/gitlab-runner/app
     - cp "$CI_PROJECT_DIR/docker-compose.prod.yml" /home/gitlab-runner/app/
     - cp "$CI_PROJECT_DIR/nginx.conf" /home/gitlab-runner/app/
     - cd /home/gitlab-runner/app
-    # --- GET SECRETS FROM AWS SSM ---
+
+    # --- ОТРИМУЄМО СЕКРЕТИ З AWS SSM ---
     - DB_PASS=$(aws ssm get-parameter --name "/prod/db_password" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
-    - APP_SECRET=$(aws ssm get-parameter --name "/prod/secret_key") --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
+    - APP_SECRET=$(aws ssm get-parameter --name "/prod/secret_key" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
     - AWS_ACCESS_KEY=$(aws ssm get-parameter --name "/prod/aws_access_key_id" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
     - AWS_SECRET_KEY=$(aws ssm get-parameter --name "/prod/aws_secret_access_key" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
-    # --- VALIDATE ALL SECRETS ---
+
+    # --- ПЕРЕВІРКА, ЩО ВСІ ЗМІННІ ОТРИМАНІ ---
     - |
       if [ -z "$DB_PASS" ]; then
-        echo "ERROR: APP_SECRET is empty"
+        echo "ERROR: DB_PASS is empty"
         exit 1
       fi
     - |
@@ -90,26 +97,30 @@ deploy:
         exit 1
       fi
     - |
-      if [ -z "$AWS_SECRET_KEY"]; then
+      if [ -z "$AWS_SECRET_KEY" ]; then
         echo "ERROR: AWS_SECRET_KEY is empty"
+        exit 1
       fi
     # - |
     #   if [ -z "$S3_BUCKET" ]; then
     #     echo "ERROR: S3_BUCKET is empty"
     #     exit 1
     #   fi
-    # --- CREATE .env FILE ---
+
+    # --- СТВОРЮЄМО .env ФАЙЛ ---
     - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY" >> .env
-    - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY"
+    - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY" >> .env
     # - echo "S3_BUCKET_NAME=$S3_BUCKET" >> .env
-    # --- START CONTAINERS ---
+
+    # --- ЗАПУСК КОНТЕЙНЕРІВ ---
     - IMAGE_TAG="$IMAGE_TAG" docker compose -f docker-compose.prod.yml up -d --remove-orphans
     - docker image prune -f
-    # --- HEALTH CHECK ---
+
+    # --- ПЕРЕВІРКА ЗДОРОВ'Я ---
     - echo "Waiting for API to be ready..."
     - for i in $(seq 1 30); do curl -f http://localhost/health && break || sleep 2; done
 
-    - echo "Depolyment successful!"
+    - echo "Deployment successful!"
     - docker ps
   only:
     - main
