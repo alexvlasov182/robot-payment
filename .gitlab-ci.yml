@@ -63,24 +63,28 @@ deploy:
   tags:
     - ec2-runner-robot
   script:
+    # --- 1. Визначаємо тег образу ---
     - export IMAGE_TAG=$(echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" | tr '[:upper:]' '[:lower:]')
-    # Логін у реєстр (через CI_JOB_TOKEN)
-    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
-    - docker pull "$IMAGE_TAG"
-    - docker logout "$CI_REGISTRY"
 
+    # --- 2. Логін у реєстр GitLab ---
+    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+
+    # --- 3. Завантажуємо образ (щоб бути впевненими) ---
+    - docker pull "$IMAGE_TAG"
+
+    # --- 4. Готуємо папку для деплою ---
     - mkdir -p /home/gitlab-runner/app
     - cp "$CI_PROJECT_DIR/docker-compose.prod.yml" /home/gitlab-runner/app/
     - cp "$CI_PROJECT_DIR/nginx.conf" /home/gitlab-runner/app/
     - cd /home/gitlab-runner/app
 
-    # --- ОТРИМУЄМО СЕКРЕТИ З AWS SSM ---
+    # --- 5. Отримуємо секрети з AWS SSM ---
     - DB_PASS=$(aws ssm get-parameter --name "/prod/db_password" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
     - APP_SECRET=$(aws ssm get-parameter --name "/prod/secret_key" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
     - AWS_ACCESS_KEY=$(aws ssm get-parameter --name "/prod/aws_access_key_id" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
     - AWS_SECRET_KEY=$(aws ssm get-parameter --name "/prod/aws_secret_access_key" --with-decryption --region eu-central-1 | jq -r '.Parameter.Value')
 
-    # --- ПЕРЕВІРКА, ЩО ВСІ ЗМІННІ ОТРИМАНІ ---
+    # --- 6. Перевіряємо, що всі змінні отримані ---
     - |
       if [ -z "$DB_PASS" ]; then
         echo "ERROR: DB_PASS is empty"
@@ -101,28 +105,40 @@ deploy:
         echo "ERROR: AWS_SECRET_KEY is empty"
         exit 1
       fi
-    # - |
-    #   if [ -z "$S3_BUCKET" ]; then
-    #     echo "ERROR: S3_BUCKET is empty"
-    #     exit 1
-    #   fi
 
-    # --- СТВОРЮЄМО .env ФАЙЛ ---
+    # --- 7. Створюємо .env файл ---
     - echo "POSTGRES_USER=postgres" > .env
     - echo "POSTGRES_PASSWORD=$DB_PASS" >> .env
     - echo "POSTGRES_DB=appdb" >> .env
     - echo "SECRET_KEY=$APP_SECRET" >> .env
     - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY" >> .env
     - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY" >> .env
-    # - echo "S3_BUCKET_NAME=$S3_BUCKET" >> .env
+    # - echo "S3_BUCKET_NAME=$S3_BUCKET" >> .env   # розкоментуйте, якщо потрібно
 
-    # --- ЗАПУСК КОНТЕЙНЕРІВ ---
+    # --- 8. Запускаємо контейнери ---
     - IMAGE_TAG="$IMAGE_TAG" docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+    # --- 9. Виводимо логи бази даних (для діагностики) ---
+    - echo "===== DB container logs ====="
+    - docker logs app-db
+    - echo "============================="
+
+    # --- 10. Перевіряємо стан контейнера ---
+    - sleep 10 # даємо час на ініціалізацію
+    - if [ "$(docker inspect -f '{{.State.Health.Status}}' app-db)" != "healthy" ]; then
+      echo "❌ DB is not healthy, exiting...";
+      docker compose -f docker-compose.prod.yml logs;
+      exit 1;
+      fi
+
+    # --- 11. Очищаємо старі образи (опціонально) ---
     - docker image prune -f
 
-    # --- ПЕРЕВІРКА ЗДОРОВ'Я ---
+    # --- 12. Перевіряємо доступність API ---
     - echo "Waiting for API to be ready..."
-    - for i in $(seq 1 30); do curl -f http://localhost/health && break || sleep 2; done
+    - for i in $(seq 1 30); do
+      curl -f http://localhost/health && break || sleep 2;
+      done
 
     - echo "Deployment successful!"
     - docker ps
