@@ -93,7 +93,7 @@ resource "aws_instance" "api_server" {
   EOF
 
   tags = {
-    Name = "FastAPI-Server"
+    Name = "RobotPaymentAPI"
   }
 }
 

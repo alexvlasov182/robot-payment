@@ -108,6 +108,10 @@ deploy:
     #   fi
 
     # --- СТВОРЮЄМО .env ФАЙЛ ---
+    - echo "POSTGRES_USER=postgres" > .env
+    - echo "POSTGRES_PASSWORD=$DB_PASS" >> .env
+    - echo "POSTGRES_DB=appdb" >> .env
+    - echo "SECRET_KEY=$APP_SECRET" >> .env
     - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY" >> .env
     - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY" >> .env
     # - echo "S3_BUCKET_NAME=$S3_BUCKET" >> .env
