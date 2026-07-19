@@ -1,6 +1,7 @@
 """Database migration environment configuration."""
 
 import os
+import sys
 from logging.config import fileConfig
 from typing import cast
 
@@ -9,17 +10,34 @@ from alembic.config import Config
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
-# Import your database elements explicitly
-from app.core.database import Base, engine  # noqa: F401
-from app.models.user import User  # noqa: F401
+# Додаємо кореневу папку проєкту до sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
-config: Config = cast(Config, getattr(context, "config"))
 
-config.set_main_option(
-    "sqlalchemy.url",
-    os.getenv("LOCAL_DATABASE_URL" if os.getenv("ENV") == "dev" else "DATABASE_URL"),  # type: ignore
-)
+# Імпортуємо Base та всі моделі
+from app.core.database import Base  # noqa: F401
+from app.models.robot import Robot  # noqa: F401
+from app.models.user import User  # noqa: F401
+
+# Отримуємо конфігурацію
+config: Config = cast(Config, context.config)
+
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    try:
+        with open(".env", "r") as f:
+            for line in f:
+                if line.startswith("DATABASE_URL="):
+                    database_url = line.strip().split("=", 1)[1]
+                    break
+    except FileNotFoundError:
+        pass
+
+if not database_url:
+    database_url = "postgresql://postgres:postgres@localhost:5432/robotdb"
+
+config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
