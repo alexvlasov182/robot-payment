@@ -3,7 +3,6 @@ set -e
 
 echo "🔄 Checking database state..."
 
-# Checking if all migrations is applied
 if alembic current 2>/dev/null | grep -q "head"; then
     echo "✅ Database is already up to date"
 else
