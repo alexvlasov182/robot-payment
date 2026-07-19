@@ -1,3 +1,63 @@
+stages:
+  - lint
+  - build
+  - test
+  - deploy
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONPATH: "$CI_PROJECT_DIR"
+  FF_DISABLE_PROFILE_LOADING: "true"
+
+cache:
+  paths:
+    - .cache/pip
+
+# ========== LINT ==========
+lint:
+  stage: lint
+  image: python:3.12-slim
+  before_script:
+    - pip install ruff
+  script:
+    - ruff check app/
+    - ruff format --check app/
+  allow_failure: false
+
+# ========== BUILD ==========
+build:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  script:
+    - export IMAGE_TAG=$(echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" | tr '[:upper:]' '[:lower:]')
+    # Використовуємо стандартні змінні GitLab для входу
+    - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker build -f Dockerfile.prod -t "$IMAGE_TAG" .
+    - docker push "$IMAGE_TAG"
+    - docker logout "$CI_REGISTRY"
+  only:
+    - main
+
+# ========== TEST ==========
+test:
+  stage: test
+  image: python:3.12-slim
+  before_script:
+    - apt-get update && apt-get install -y libpq-dev gcc
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov httpx
+    - echo "DATABASE_URL=sqlite:///./test.db" > .env
+    - echo "SECRET_KEY=test-secret-key-for-ci-32-chars" >> .env
+    - echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
+    - echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+    - echo "ALGORITHM=HS256" >> .env
+    - export PYTHONPATH=$CI_PROJECT_DIR
+  script:
+    - pytest -v --cov=app --cov-report=term-missing
+
+# ========== DEPLOY ==========
 deploy:
   stage: deploy
   tags:
