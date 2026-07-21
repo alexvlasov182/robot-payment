@@ -54,7 +54,4 @@ class TestSettings(Settings):
 
 # Вибираємо налаштування залежно від середовища
 env = getenv("APP_ENV", "development")
-if env == "test":
-    settings = TestSettings()
-else:
-    settings = Settings()
+settings = TestSettings() if env == "test" else Settings()
