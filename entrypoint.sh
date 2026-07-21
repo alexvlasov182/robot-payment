@@ -1,8 +1,17 @@
 #!/bin/sh
 set -e
 
+# Додаємо PYTHONPATH
+export PYTHONPATH=/app:$PYTHONPATH
+
 echo "🔄 Running Alembic migrations..."
-alembic upgrade head >/dev/null 2>&1 || alembic stamp head >/dev/null 2>&1
+cd /app && alembic upgrade head
 
 echo "🚀 Starting Gunicorn..."
-exec gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+exec gunicorn app.main:app \
+    --workers 2 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 0.0.0.0:8000 \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile -
