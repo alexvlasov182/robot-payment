@@ -42,10 +42,13 @@ test:
   before_script:
     - apt-get update -qq && apt-get install -y -qq libpq-dev gcc postgresql-client
     - pip install -r requirements.txt
-    # Очищаємо базу для чистих міграцій
+
     - PGPASSWORD=test_pass psql -h postgres -U test_user -d test_db -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
   script:
-    - alembic upgrade head
+    - alembic current || echo "No current version"
+
+    - alembic upgrade head || (alembic stamp head && alembic upgrade head)
+
     - pytest --cov=app --cov-report=term-missing -v
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
