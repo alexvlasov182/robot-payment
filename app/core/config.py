@@ -13,9 +13,7 @@ class Settings(BaseSettings):
     """Base Settings."""
 
     app_name: str = "API AI Application"
-    app_env: str = (
-        "development"  # Дозволені значення: development, staging, production, testing, test
-    )
+    app_env: str = "development"  # Дозволені значення: development, staging, production, testing, test
     debug: bool = True
 
     database_url: str
