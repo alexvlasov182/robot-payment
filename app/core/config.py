@@ -12,7 +12,7 @@ load_dotenv()
 class Settings(BaseSettings):
     """Base Settings."""
 
-    app_name: str = "API AI Application"
+    app_name: str = "Robot Payment Testing Platform"
     app_env: str = "development"  # Дозволені значення: development, staging, production, testing, test
     debug: bool = True
 
