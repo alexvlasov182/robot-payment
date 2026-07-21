@@ -1,9 +1,10 @@
 """Terminals API"""
 
 from fastapi import APIRouter, Depends
+
 from app.api.dependencies import get_terminal_service
-from app.services.terminal_services import TerminalService
 from app.schemas.terminal import TerminalTestRequest, TerminalTestResponse
+from app.services.terminal_services import TerminalService
 
 router = APIRouter(prefix="/terminals", tags=["Terminals"])
 

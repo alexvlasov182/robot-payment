@@ -2,9 +2,10 @@
 
 import time
 import uuid
+
 from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
 from loguru import logger
+from starlette.middleware.base import BaseHTTPMiddleware
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
