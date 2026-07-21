@@ -1,6 +1,6 @@
 """Model for the Robots"""
 
-import enum
+from enum import StrEnum
 
 from sqlalchemy import Column, DateTime, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
@@ -8,7 +8,7 @@ from sqlalchemy import Enum as SQLEnum
 from app.core.database import Base
 
 
-class RobotType(str, enum.Enum):
+class RobotType(StrEnum):
     """Robot type enumeration"""
 
     T1 = "T1"  # Single terminal tester
