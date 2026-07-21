@@ -1,7 +1,9 @@
 """Repositories"""
 
-from typing import Generic, List, Optional, Type, TypeVar
+from typing import Generic, TypeVar
+
 from sqlalchemy.orm import Session
+
 from app.core.database import Base
 
 ModelTypeT = TypeVar("ModelTypeT", bound=Base)  # type: ignore
@@ -12,15 +14,15 @@ UpdateSchemaT = TypeVar("UpdateSchemaT")
 class BaseRepository(Generic[ModelTypeT, CreateSchemaT, UpdateSchemaT]):
     """Base repository with common CRUD opertaions"""
 
-    def __init__(self, model: Type[ModelTypeT], db: Session):
+    def __init__(self, model: type[ModelTypeT], db: Session):
         self.model = model
         self.db = db
 
-    def get(self, record_id: int) -> Optional[ModelTypeT]:
+    def get(self, record_id: int) -> ModelTypeT | None:
         """Get entity by ID"""
         return self.db.query(self.model).filter(self.model.id == record_id).first()
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> List[ModelTypeT]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelTypeT]:
         """Get all entities with pagination"""
         return self.db.query(self.model).offset(skip).limit(limit).all()
 
@@ -33,7 +35,7 @@ class BaseRepository(Generic[ModelTypeT, CreateSchemaT, UpdateSchemaT]):
         self.db.refresh(db_obj)
         return db_obj
 
-    def update(self, record_id: int, obj_in: UpdateSchemaT) -> Optional[ModelTypeT]:
+    def update(self, record_id: int, obj_in: UpdateSchemaT) -> ModelTypeT | None:
         """Update existing entity"""
         db_obj = self.get(record_id)
         if not db_obj:

@@ -1,11 +1,11 @@
 """Dependency Injection"""
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.security import decode_access_token
-
 from app.services.auth_service import AuthService
 from app.services.robot_service import RobotService
 from app.services.terminal_services import TerminalService

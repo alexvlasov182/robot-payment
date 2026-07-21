@@ -1,7 +1,7 @@
 """Pytest configuration for tests"""
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -13,14 +13,14 @@ os.environ["APP_ENV"] = "testing"
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
 from app.core.database import Base, get_db
 from app.core.security import hash_password
-from app.models.user import User
+from app.main import app
 from app.models.robot import Robot, RobotType
+from app.models.user import User
 
 TEST_DATABASE_URL = "sqlite:///./test.db"
 

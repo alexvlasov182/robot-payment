@@ -1,7 +1,10 @@
 """Model for the Robots"""
 
 import enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum, DateTime, func
+
+from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy import Enum as SQLEnum
+
 from app.core.database import Base
 
 

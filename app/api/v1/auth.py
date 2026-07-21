@@ -1,10 +1,11 @@
 """Auth endpoints"""
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.api.dependencies import get_auth_service
-from app.services.auth_service import AuthService
-from app.schemas.auth import UserLogin, UserRegister, TokenResponse
 from loguru import logger
+
+from app.api.dependencies import get_auth_service
+from app.schemas.auth import TokenResponse, UserLogin, UserRegister
+from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 

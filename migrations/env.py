@@ -10,15 +10,20 @@ from alembic.config import Config
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
+# ============================================
+# ІМПОРТИ МОДЕЛЕЙ - ПОВИННІ БУТИ НА ПОЧАТКУ!
+# ============================================
+from app.core.database import Base  # noqa: F401
+from app.models.robot import Robot  # noqa: F401
+from app.models.user import User  # noqa: F401
+
+# ============================================
+# НАЛАШТУВАННЯ
+# ============================================
 # Додаємо кореневу папку проєкту до sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
-
-# Імпортуємо Base та всі моделі
-from app.core.database import Base  # noqa: F401
-from app.models.robot import Robot  # noqa: F401
-from app.models.user import User  # noqa: F401
 
 # Отримуємо конфігурацію
 config: Config = cast(Config, context.config)
@@ -26,7 +31,7 @@ config: Config = cast(Config, context.config)
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
     try:
-        with open(".env", "r") as f:
+        with open(".env") as f:
             for line in f:
                 if line.startswith("DATABASE_URL="):
                     database_url = line.strip().split("=", 1)[1]

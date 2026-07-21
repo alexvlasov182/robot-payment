@@ -2,6 +2,7 @@
 
 import pytest
 from sqlalchemy.orm import Session
+
 from app.services.auth_service import AuthService
 
 

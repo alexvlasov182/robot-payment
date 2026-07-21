@@ -1,0 +1,47 @@
+# Ruff конфігурація для проекту robot-payment
+
+line-length = 88
+target-version = "py312"
+
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "migrations/versions/*",
+]
+
+[lint]
+select = [
+    "E", "W", "F", "I", "N", "UP", "B", "C4", "SIM"
+]
+ignore = [
+    "E501", "B008"
+]
+fixable = ["ALL"]
+unfixable = []
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"migrations/*" = ["E402"]
+"tests/*" = ["S101"]
+
+[lint.isort]
+known-first-party = ["app", "tests"]
+known-third-party = ["fastapi", "sqlalchemy", "alembic"]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+docstring-code-format = true
+docstring-code-line-length = 88

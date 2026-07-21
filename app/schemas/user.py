@@ -1,7 +1,6 @@
 """User schemas for request/response validation."""
 
-from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserCreate(BaseModel):
@@ -14,8 +13,8 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     """Schema for updating an existing user."""
 
-    email: Optional[EmailStr] = Field(None, description="User email address")
-    is_active: Optional[bool] = Field(None, description="User active status")
+    email: EmailStr | None = Field(None, description="User email address")
+    is_active: bool | None = Field(None, description="User active status")
 
 
 class UserResponse(BaseModel):
