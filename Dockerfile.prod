@@ -1,32 +1,21 @@
-# Stage 1: Builder (install dependencies)
-FROM python:3.12-slim as builder
+
+FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
 WORKDIR /app
+
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Stage 2: Final image (smaller)
-FROM python:3.12-slim
-
-WORKDIR /app
-
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY . .
 
+
 RUN chmod +x entrypoint.sh
 
-RUN adduser --disabled-password --gecos '' appuser
-RUN chown -R appuser:appuser /app
-USER appuser
-
-# CMD calls entrypoint.sh, which itself runs migrations then starts gunicorn.
-# This way there's only ONE place that decides how the app starts -
-# docker-compose no longer needs its own "command:" that could silently
-# contradict this and run something different (that was the bug before).
+# Запускаємо entrypoint
 CMD ["sh", "entrypoint.sh"]
