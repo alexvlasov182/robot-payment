@@ -27,7 +27,7 @@ services:
 
   api:
     image: ${IMAGE_TAG}
-    container_name: robot-api
+    container_name: api
     restart: unless-stopped
     expose:
       - "8000"
