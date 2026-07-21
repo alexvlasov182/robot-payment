@@ -39,6 +39,7 @@ test:
     POSTGRES_PASSWORD: test_pass
     POSTGRES_DB: test_db
     DATABASE_URL: "postgresql://test_user:test_pass@postgres:5432/test_db"
+    SECRET_KEY: "test_secret_key_for_ci"
   before_script:
     - apt-get update -qq && apt-get install -y -qq libpq-dev gcc
     - pip install -r requirements.txt
