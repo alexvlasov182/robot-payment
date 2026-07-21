@@ -1,7 +1,7 @@
 """Services for robots"""
 
-from typing import List, Optional
-from sqlalchemy.orm import Session  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy.orm import Session
+
 from app.models.robot import Robot
 from app.repositories.robot_repository import RobotRepository
 from app.schemas.robot import RobotCreate, RobotUpdate
@@ -20,18 +20,18 @@ class RobotService:
 
         return self.robot_repo.create(robot_data)
 
-    def get_all_robots(self) -> List[Robot]:
+    def get_all_robots(self) -> list[Robot]:
         """Get all robots"""
         return self.robot_repo.get_all()
 
-    def get_robot(self, robot_id: int) -> Optional[Robot]:
+    def get_robot(self, robot_id: int) -> Robot | None:
         """Get robot by ID"""
         return self.robot_repo.get(robot_id)
 
-    def update_robot_status(self, robot_id: int, status: str) -> Optional[Robot]:
+    def update_robot_status(self, robot_id: int, data: RobotUpdate) -> Robot | None:
         """Update robot status"""
-        update_data = RobotUpdate(status=status)
-        return self.robot_repo.update(robot_id, update_data)
+
+        return self.robot_repo.update(robot_id, data)
 
     def delete_robot(self, robot_id: int) -> bool:
         """Delete robot"""

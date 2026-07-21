@@ -1,17 +1,17 @@
 """Dependency Injection"""
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.security import decode_access_token
-
 from app.services.auth_service import AuthService
 from app.services.robot_service import RobotService
 from app.services.terminal_services import TerminalService
 
 # Security
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 # Service factories
@@ -32,9 +32,16 @@ def get_terminal_service() -> TerminalService:
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db),
 ) -> dict:
     """Get current authenticated user"""
+    # If no credentials provided, raise 401
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = credentials.credentials
     email = decode_access_token(token)
 
@@ -45,5 +52,4 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    auth_service = AuthService(db)
-    return {"email": email, "auth_service": auth_service}
+    return {"email": email}

@@ -1,8 +1,10 @@
-from typing import Optional
+"""User Repositories"""
+
 from sqlalchemy.orm import Session
+
 from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
 from app.repositories.base import BaseRepository
+from app.schemas.user import UserCreate, UserUpdate
 
 
 class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
@@ -11,10 +13,12 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
     def __init__(self, db: Session):
         super().__init__(User, db)
 
-    def get_by_email(self, email: str) -> Optional[User]:
+    def get_by_email(self, email: str) -> User | None:
         """Get user by email address"""
-        return self.db.query(User).filter(User.email == email).first()
+        normalized = str(email).strip().lower()
+        return self.db.query(User).filter(User.email == normalized).first()
+        # TODO raw SQL
 
     def exists_by_email(self, email: str) -> bool:
         """Check if user exists by email"""
-        return self.db.query(User).filter(User.email == email).count() > 0
+        return self.get_by_email(email) is not None

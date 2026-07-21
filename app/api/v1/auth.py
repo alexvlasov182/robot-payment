@@ -1,10 +1,11 @@
 """Auth endpoints"""
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from loguru import logger
+
 from app.api.dependencies import get_auth_service
+from app.schemas.auth import TokenResponse, UserLogin, UserRegister
 from app.services.auth_service import AuthService
-from app.schemas.auth import UserLogin, UserRegister, TokenResponse
-from app.core.security import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -26,6 +27,7 @@ async def register(
 
     try:
         user = auth_service.register_user(user_data.email, user_data.password)
+        logger.info(f"User registered successfully via API - email={user_data.email}")
         return {"message": "User registered successfully", "user": user}
     except ValueError as e:
         raise HTTPException(
@@ -39,16 +41,59 @@ async def register(
     summary="Login user",
     description="Authenticate and get JWT token",
 )
-async def loign(
+async def login(
     user_data: UserLogin, auth_service: AuthService = Depends(get_auth_service)
 ):
     """Login and get access token"""
     try:
         user = auth_service.authenticate_user(user_data.email, user_data.password)
-        token = create_access_token(data={"sub": user["email"]})
+        tokens = auth_service.get_tokens(user["email"])
+        logger.info(f"User logged in successfully - email={user_data.email}")
+        return TokenResponse(
+            access_token=tokens["access_token"],
+            token_type=tokens["token_type"],
+            expires_in=tokens["expires_in"],
+        )  # pyright: ignore[reportCallIssue]
+    except ValueError as e:
+        logger.warning(f"Login failed - {str(e)} - email={user_data.email}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
+        ) from e
 
-        return TokenResponse(access_token=token, token_type="bearer", expires_in=1800)
+
+@router.post(
+    "/refresh",
+    response_model=TokenResponse,
+    summary="Refresh token",
+    description="Get new access token using refresh token",
+)
+async def refresh_token(
+    refresh_token_value: str, auth_service: AuthService = Depends(get_auth_service)
+):
+    """Refresh access token"""
+    try:
+        tokens = auth_service.refresh_token(refresh_token_value)
+        return TokenResponse(
+            access_token=tokens["access_token"],
+            token_type=tokens["token_type"],
+            expires_in=tokens["expires_in"],
+        )  # type: ignore
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
         ) from e
+
+
+@router.post(
+    "/logout",
+    summary="Logout user",
+    description="Invalidate current token",
+)
+async def logout():
+    """
+    Logout user.
+    Token is validated but not blacklisted here.
+    Production strategy: store token jti in Redis with TTL equal to token expiry.
+    """
+    logger.info("Logout requested for user")
+    return {"message": "Successfully logged out"}

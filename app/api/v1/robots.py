@@ -1,10 +1,10 @@
 """Robots Endpoints"""
 
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.api.dependencies import get_robot_service, get_current_user
+
+from app.api.dependencies import get_current_user, get_robot_service
+from app.schemas.robot import RobotCreate, RobotResponse, RobotUpdate
 from app.services.robot_service import RobotService
-from app.schemas.robot import RobotCreate, RobotResponse
 
 router = APIRouter(prefix="/robots", tags=["Robots"])
 
@@ -32,7 +32,7 @@ async def create_robot(
 
 @router.get(
     "/",
-    response_model=List[RobotResponse],
+    response_model=list[RobotResponse],
     summary="List robots",
     description="Get all registered robots",
 )
@@ -48,7 +48,7 @@ async def list_robots(
     "/{robot_id}",
     response_model=RobotResponse,
     summary="Get robot by ID",
-    description="Get sepcific robot details",
+    description="Get specific robot details",
 )
 async def get_robot(
     robot_id: int,
@@ -72,12 +72,12 @@ async def get_robot(
 )
 async def update_robot_status(
     robot_id: int,
-    status: str,
+    data: RobotUpdate,
     robot_service: RobotService = Depends(get_robot_service),
     _current_user: dict = Depends(get_current_user),
 ):
     """Update robot status (authentication required)"""
-    robot = robot_service.update_robot_status(robot_id, status)
+    robot = robot_service.update_robot_status(robot_id, data)  # type: ignore
     if not robot:
         raise HTTPException(status_code=404, detail="Robot not found")
     return robot

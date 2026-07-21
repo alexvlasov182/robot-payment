@@ -1,7 +1,6 @@
 """Main file for the robot schemas"""
 
-from typing import Optional
-from pydantic import BaseModel, Field  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.robot import RobotType
 
@@ -11,20 +10,16 @@ class RobotCreate(BaseModel):
 
     name: str = Field(..., min_length=2, max_length=100, description="Robot name")
     serial_number: str = Field(..., min_length=3, description="Unique serial number")
-    robot_type: Optional[RobotType] = Field(
-        default=RobotType.T1, description="Robot type"
-    )
-    capabilities: Optional[str] = Field(
-        None, description="Comma-separated capabilities"
-    )
+    robot_type: RobotType | None = Field(default=RobotType.T1, description="Robot type")
+    capabilities: str | None = Field(None, description="Comma-separated capabilities")
 
 
 class RobotUpdate(BaseModel):
     """Request schema for update a robot"""
 
-    name: Optional[str] = None
-    status: Optional[str] = None
-    capabilities: Optional[str] = None
+    name: str | None = None
+    status: str | None = None
+    capabilities: str | None = None
 
 
 class RobotResponse(BaseModel):
@@ -35,9 +30,6 @@ class RobotResponse(BaseModel):
     robot_type: RobotType
     status: str
     serial_number: str
-    capabilities: Optional[str]
+    capabilities: str | None
 
-    class Config:
-        """Class config"""
-
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

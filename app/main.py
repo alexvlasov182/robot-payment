@@ -1,13 +1,16 @@
 """Main app"""
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.database import engine, Base
-from app.api.v1 import auth, robots, terminals, health
+from pathlib import Path
 
-# Create database tables (only once, when app starts)
-Base.metadata.create_all(bind=engine)
+from fastapi import FastAPI  # type: ignore[import]
+from starlette.middleware.cors import CORSMiddleware  # type: ignore
+
+from app.api.v1 import auth, health, robots, terminals
+from app.core.config import settings
+from app.core.logging_config import setup_logging
+
+Path("logs").mkdir(exist_ok=True)
+setup_logging()
 
 app = FastAPI(
     title=settings.app_name,

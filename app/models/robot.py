@@ -1,13 +1,14 @@
 """Model for the Robots"""
 
-import enum
-from sqlalchemy import Column, Integer, String, Enum as SQLEnum  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from enum import StrEnum
 
-# from sqlalchemy.sql import func  # type: ignore[reportMissingImports]  # pylint: disable=import-error
+from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy import Enum as SQLEnum
+
 from app.core.database import Base
 
 
-class RobotType(str, enum.Enum):
+class RobotType(StrEnum):
     """Robot type enumeration"""
 
     T1 = "T1"  # Single terminal tester
@@ -27,4 +28,4 @@ class Robot(Base):
     status = Column(String, default="offline")
     serial_number = Column(String, unique=True, nullable=False)
     capabilities = Column(String, nullable=True)
-    # created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
