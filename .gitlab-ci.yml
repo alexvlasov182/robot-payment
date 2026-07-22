@@ -3,6 +3,7 @@ stages:
   - test
   - build
   - deploy
+  - reset-db
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -12,6 +13,31 @@ variables:
 cache:
   paths:
     - .cache/pip
+
+reset-db:
+  stage: reset-db
+  tags:
+    - ec2-runner-robot
+  script:
+    - cd /home/gitlab-runner/app
+    - echo "⚠️  Визначаємо поточний образ API..."
+    - export IMAGE_TAG=$(docker inspect --format='{{.Config.Image}}' api)
+    - echo "Поточний образ - $IMAGE_TAG"
+    - echo "⚠️  Видаляємо контейнери та volume бази даних..."
+    - docker compose -f docker-compose.prod.yml down -v
+    - echo "🔄 Піднімаємо заново з тим самим образом..."
+    - IMAGE_TAG="$IMAGE_TAG" docker compose -f docker-compose.prod.yml up -d
+    - sleep 10
+    - echo "===== DB container logs ====="
+    - docker logs app-db
+    - echo "===== API container logs ====="
+    - docker logs api
+    - echo "===== Checking health ====="
+    - for i in $(seq 1 30); do curl -f http://localhost/health && break || sleep 2; done
+    - echo "✅ Reset complete!"
+  when: manual
+  only:
+    - main
 
 # LINT
 lint:
