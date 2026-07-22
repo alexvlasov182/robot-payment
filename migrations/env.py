@@ -19,9 +19,7 @@ from app.models.user import User  # noqa: F401
 
 target_metadata = Base.metadata
 
-# ============================================
-# НАЛАШТУВАННЯ
-# ============================================
+
 # Додаємо кореневу папку проєкту до sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
