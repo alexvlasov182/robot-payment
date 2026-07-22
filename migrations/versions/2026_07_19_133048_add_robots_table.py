@@ -18,7 +18,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    pass  # таблиця robots вже створена в initial_schema
+    pass
 
 
 def downgrade() -> None:

@@ -8,12 +8,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env = getenv("APP_ENV", "development")
 
-# .env файли для локальної розробки тільки
+# .env files for local development only
 if env != "production":
     env_file = ".env.local"
     load_dotenv(env_file)
 else:
-    env_file = None  # на проді змінні вже в оточенні контейнера
+    env_file = None  # In production, variables are already provided by the container environment
 
 
 class Settings(BaseSettings):

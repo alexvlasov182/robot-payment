@@ -1,4 +1,4 @@
-# Ruff конфігурація для проекту robot-payment
+# Ruff configuration for the project robot-payment
 
 line-length = 88
 target-version = "py312"
