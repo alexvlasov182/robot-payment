@@ -90,5 +90,4 @@ class AuthService:
     def logout(self, token: str) -> bool:
         """Logout user (in production, add token to blacklist)"""
         logger.info("Logout requested")
-        # In production, you would add token to a blacklist in Redis
         return True

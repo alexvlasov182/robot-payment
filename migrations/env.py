@@ -10,9 +10,6 @@ from alembic.config import Config
 from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
-# ============================================
-# ІМПОРТИ МОДЕЛЕЙ - ПОВИННІ БУТИ НА ПОЧАТКУ!
-# ============================================
 from app.core.database import Base  # noqa: F401
 from app.models.robot import Robot  # noqa: F401
 from app.models.user import User  # noqa: F401
@@ -20,12 +17,12 @@ from app.models.user import User  # noqa: F401
 target_metadata = Base.metadata
 
 
-# Додаємо кореневу папку проєкту до sys.path
+# Adding the project root directory to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
 
-# Отримуємо конфігурацію
+# Loading configuration
 config: Config = cast(Config, context.config)
 
 database_url = os.getenv("DATABASE_URL")
@@ -56,7 +53,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        version_table="alembic_version",  # Явно вказуємо таблицю версій
+        version_table="alembic_version",  # Explicitly define the version table
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -73,15 +70,12 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            version_table="alembic_version",  # Явно вказуємо таблицю версій
+            version_table="alembic_version",  # Explicitly define the version table
         )
         with context.begin_transaction():
             context.run_migrations()
 
 
-# ============================================
-# ТОЧКА ВХОДУ - ТІЛЬКИ ОДИН РАЗ!
-# ============================================
 if context.is_offline_mode():
     run_migrations_offline()
 else:

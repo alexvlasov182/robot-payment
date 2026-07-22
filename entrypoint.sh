@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# Додаємо PYTHONPATH
+# Adding PYTHONPATH
 export PYTHONPATH=/app:$PYTHONPATH
 
 echo "🔄 Running Alembic migrations..."

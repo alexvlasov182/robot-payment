@@ -17,10 +17,10 @@ COPY . .
 # Set Python path
 ENV PYTHONPATH=/app
 
-# Робимо entrypoint виконуваним
+# Make entrypoint executeble
 RUN chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
-# Використовуємо entrypoint замість прямого CMD
+# Using entrypoint enstead direct CMD
 ENTRYPOINT ["/app/entrypoint.sh"]
