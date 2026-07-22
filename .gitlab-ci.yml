@@ -123,15 +123,15 @@ deploy:
       fi
 
     # --- 8. Створюємо .env файл (усі змінні, які реально потрібні застосунку) ---
-   - echo "POSTGRES_USER=postgres" > .env
-- echo "POSTGRES_PASSWORD=$DB_PASS" >> .env
-- echo "POSTGRES_DB=appdb" >> .env
-- echo "SECRET_KEY=$APP_SECRET" >> .env
-- echo "ALGORITHMS=HS256" >> .env
-- echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
-- echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
-- echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY" >> .env
-- echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY" >> .env
+    - echo "POSTGRES_USER=postgres" > .env
+    - echo "POSTGRES_PASSWORD=$DB_PASS" >> .env
+    - echo "POSTGRES_DB=appdb" >> .env
+    - echo "SECRET_KEY=$APP_SECRET" >> .env
+    - echo "ALGORITHMS=HS256" >> .env
+    - echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+    - echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
+    - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY" >> .env
+    - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY" >> .env
 
     # --- 9. Запускаємо контейнери ---
     - IMAGE_TAG="$IMAGE_TAG" docker compose -f docker-compose.prod.yml up -d --remove-orphans
