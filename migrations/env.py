@@ -17,9 +17,9 @@ from app.core.database import Base  # noqa: F401
 from app.models.robot import Robot  # noqa: F401
 from app.models.user import User  # noqa: F401
 
-# ============================================
-# НАЛАШТУВАННЯ
-# ============================================
+target_metadata = Base.metadata
+
+
 # Додаємо кореневу папку проєкту до sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -46,8 +46,6 @@ config.set_main_option("sqlalchemy.url", database_url)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

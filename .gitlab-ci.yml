@@ -27,6 +27,7 @@ lint:
     - if: "$CI_COMMIT_BRANCH"
   allow_failure: false
 
+# TEST
 test:
   stage: test
   image: python:3.12-slim
@@ -39,16 +40,16 @@ test:
     POSTGRES_DB: test_db
     DATABASE_URL: "postgresql://test_user:test_pass@postgres:5432/test_db"
     SECRET_KEY: "test_secret_key_for_ci"
+    ALGORITHMS: "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+    REFRESH_TOKEN_EXPIRE_DAYS: "7"
   before_script:
     - apt-get update -qq && apt-get install -y -qq libpq-dev gcc postgresql-client
     - pip install -r requirements.txt
-
     - PGPASSWORD=test_pass psql -h postgres -U test_user -d test_db -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
   script:
     - alembic current || echo "No current version"
-
     - alembic upgrade head || (alembic stamp head && alembic upgrade head)
-
     - pytest --cov=app --cov-report=term-missing -v
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -62,7 +63,6 @@ build:
     - docker:24.0.5-dind
   script:
     - export IMAGE_TAG=$(echo "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" | tr '[:upper:]' '[:lower:]')
-    # Використовуємо стандартні змінні GitLab для входу
     - echo "$CI_JOB_TOKEN" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - docker build -f Dockerfile.prod -t "$IMAGE_TAG" .
     - docker push "$IMAGE_TAG"
@@ -122,11 +122,14 @@ deploy:
         exit 1
       fi
 
-    # --- 8. Створюємо .env файл ---
+    # --- 8. Створюємо .env файл (усі змінні, які реально потрібні застосунку) ---
     - echo "POSTGRES_USER=postgres" > .env
     - echo "POSTGRES_PASSWORD=$DB_PASS" >> .env
     - echo "POSTGRES_DB=appdb" >> .env
     - echo "SECRET_KEY=$APP_SECRET" >> .env
+    - echo "ALGORITHMS=HS256" >> .env
+    - echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> .env
+    - echo "REFRESH_TOKEN_EXPIRE_DAYS=7" >> .env
     - echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY" >> .env
     - echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_KEY" >> .env
 

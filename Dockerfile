@@ -17,6 +17,10 @@ COPY . .
 # Set Python path
 ENV PYTHONPATH=/app
 
+# Робимо entrypoint виконуваним
+RUN chmod +x /app/entrypoint.sh
+
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Використовуємо entrypoint замість прямого CMD
+ENTRYPOINT ["/app/entrypoint.sh"]
