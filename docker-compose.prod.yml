@@ -46,6 +46,8 @@ services:
     image: ${IMAGE_TAG}
     container_name: api
     restart: unless-stopped
+    ports:
+      - "8000:8000"
     expose:
       - "8000"
     environment:
