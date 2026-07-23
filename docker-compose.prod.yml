@@ -25,6 +25,23 @@ services:
     networks:
       - robot-net
 
+
+    redis:
+      image: redis:7-alpine
+      container_name: app-redis
+      restart: unless-stopped
+      ports:
+        - "6379:6379"
+      volumes:
+        - redis_data:/data
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+      networks:
+        - robot-net
+
   api:
     image: ${IMAGE_TAG}
     container_name: api
@@ -39,10 +56,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-appdb}
+      REDIS_HOST: app-redis
     env_file:
       - .env
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - robot-net
@@ -62,6 +82,7 @@ services:
 
 volumes:
   postgres_data_pord:
+  redis_data:
 
 networks:
   robot-net:
