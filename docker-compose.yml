@@ -18,6 +18,15 @@ services:
     networks:
       - robot-net
 
+  redis:
+    image: redis:7-alpine
+    container_name: robot-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - robot-net
+
   api:
     build: .
     container_name: robot-api
@@ -40,6 +49,7 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   robot-net:
