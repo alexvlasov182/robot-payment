@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment variables"""
 
-    app_name: str = "Robot Payment Testing"
+    app_name: str = "Robot Payment Testing 11111111111"
     app_env: Literal["development", "staging", "production", "testing"] = "development"
     debug: bool = True
     secret_key: str
