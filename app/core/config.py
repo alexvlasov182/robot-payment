@@ -19,13 +19,8 @@ else:
 class Settings(BaseSettings):
     """Base Settings."""
 
-<<<<<<< HEAD
-    app_name: str = "Robot Payment Testing 11111111111"
-    app_env: Literal["development", "staging", "production", "testing"] = "development"
-=======
     app_name: str = "Robot Payment Testing Platform"
     app_env: str = "development"
->>>>>>> origin/main
     debug: bool = True
 
     database_url: str = "postgresql://robot_user:robot_pass@db:5432/robot_payment"
