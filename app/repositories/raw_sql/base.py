@@ -1,8 +1,10 @@
 """Repositories"""
 
-from typing import Generic, List, Optional, Type, TypeVar
-from sqlalchemy.orm import Session
+from typing import Generic, TypeVar
+
 from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from app.core.database import Base
 
 ModelTypeT = TypeVar("ModelTypeT", bound=Base)  # type: ignore
@@ -13,14 +15,14 @@ UpdateSchemaT = TypeVar("UpdateSchemaT")
 class BaseRepository(Generic[ModelTypeT, CreateSchemaT, UpdateSchemaT]):
     """Base repository with common CRUD operations (raw SQL version)"""
 
-    def __init__(self, model: Type[ModelTypeT], db: Session) -> None:
+    def __init__(self, model: type[ModelTypeT], db: Session) -> None:
         self.model = model
         self.db = db
 
         # Get the actual table name from the model, e.g. "robots", "users"
         self.table = model.__tablename__
 
-    def get(self, record_id: int) -> Optional[ModelTypeT]:
+    def get(self, record_id: int) -> ModelTypeT | None:
         """Get entity by ID"""
         sql = text(f"SELECT * FROM {self.table} WHERE id = :id")
         row = self.db.execute(sql, {"id": record_id}).mappings().first()
@@ -28,7 +30,7 @@ class BaseRepository(Generic[ModelTypeT, CreateSchemaT, UpdateSchemaT]):
             return None
         return self._row_to_model(row)
 
-    def get_all(self, skip: int = 0, limit: int = 100) -> List[ModelTypeT]:
+    def get_all(self, skip: int = 0, limit: int = 100) -> list[ModelTypeT]:
         """Get all entities with pagination"""
         sql = text(f"SELECT * FROM {self.table} OFFSET :skip LIMIT :limit")
         rows = self.db.execute(sql, {"skip": skip, "limit": limit}).mappings().all()
@@ -53,7 +55,7 @@ class BaseRepository(Generic[ModelTypeT, CreateSchemaT, UpdateSchemaT]):
         self.db.commit()
         return self._row_to_model(row)
 
-    def update(self, record_id: int, obj_in: UpdateSchemaT) -> Optional[ModelTypeT]:
+    def update(self, record_id: int, obj_in: UpdateSchemaT) -> ModelTypeT | None:
         """Update existing entity"""
         update_data = obj_in.model_dump(exclude_unset=True)  # type: ignore
         if not update_data:
@@ -85,7 +87,7 @@ class BaseRepository(Generic[ModelTypeT, CreateSchemaT, UpdateSchemaT]):
     def exists(self, **kwargs) -> bool:
         """Check if entity exists with given filters"""
         # Build "name = :name AND status = :status"
-        where_clause = " AND ".join(f"{k} = :{k}" for k in kwargs.keys())
+        where_clause = " AND ".join(f"{k} = :{k}" for k in kwargs)
         sql = text(f"SELECT 1 FROM {self.table} WHERE {where_clause} LIMIT 1")
         row = self.db.execute(sql, kwargs).first()
         return row is not None

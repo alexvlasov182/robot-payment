@@ -1,12 +1,14 @@
 """Robot Repository"""
 
-from typing import Optional, List, TypeVar
-from sqlalchemy.orm import Session
+from typing import TypeVar
+
 from sqlalchemy import text
-from app.models.robot import Robot
-from app.schemas.robot import RobotCreate, RobotUpdate
-from app.repositories.base import BaseRepository
+from sqlalchemy.orm import Session
+
 from app.core.database import Base
+from app.models.robot import Robot
+from app.repositories.base import BaseRepository
+from app.schemas.robot import RobotCreate, RobotUpdate
 
 ModelTypeT = TypeVar("ModelTypeT", bound=Base)  # type: ignore
 
@@ -17,7 +19,7 @@ class RobotRepository(BaseRepository[Robot, RobotCreate, RobotUpdate]):
     def __init__(self, db: Session):
         super().__init__(Robot, db)
 
-    def get_by_serial_number(self, serial_number: str) -> Optional[Robot]:
+    def get_by_serial_number(self, serial_number: str) -> Robot | None:
         """Get robot by serial number"""
         sql = text("SELECT * FROM robots WHERE serial_number = :serial_number")
 
@@ -26,7 +28,7 @@ class RobotRepository(BaseRepository[Robot, RobotCreate, RobotUpdate]):
             return None
         return self._row_to_model(row)  # type: ignore
 
-    def get_by_status(self, status: str) -> List[Robot]:
+    def get_by_status(self, status: str) -> list[Robot]:
         """Get robots by status"""
         sql = text("SELECT * FROM robots WHERE status = :status")
 

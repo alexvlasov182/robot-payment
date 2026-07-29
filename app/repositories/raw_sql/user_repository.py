@@ -1,12 +1,14 @@
 """User Repositories"""
 
-from typing import Optional, TypeVar
-from sqlalchemy.orm import Session
+from typing import TypeVar
+
 from sqlalchemy import text
-from app.models.user import User
-from app.schemas.user import UserCreate, UserUpdate
-from app.repositories.base import BaseRepository
+from sqlalchemy.orm import Session
+
 from app.core.database import Base
+from app.models.user import User
+from app.repositories.base import BaseRepository
+from app.schemas.user import UserCreate, UserUpdate
 
 ModelTypeT = TypeVar("ModelTypeT", bound=Base)  # type: ignore
 
@@ -17,7 +19,7 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate]):
     def __init__(self, db: Session):
         super().__init__(User, db)
 
-    def get_by_email(self, email: str) -> Optional[User]:
+    def get_by_email(self, email: str) -> User | None:
         """Get user by email address"""
         normalized = str(email).strip().lower()
         sql = text("SELECT * FROM users WHERE email = :email")
