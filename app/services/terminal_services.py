@@ -1,13 +1,12 @@
 """Terminal service"""
 
 import asyncio
-from typing import Dict
 
 
 class TerminalService:
     """Service for terminal testing simulation"""
 
-    async def test_terminal(self, terminal_id: int, amount: float, method: str) -> Dict:
+    async def test_terminal(self, terminal_id: int, amount: float, method: str) -> dict:
         """Simulate testing a payment terminal"""
         # Simulate robot movement and payment processing
         await asyncio.sleep(0.5)
@@ -21,7 +20,7 @@ class TerminalService:
             "message": f"Payment of ${amount} via {method} approved",
         }
 
-    def get_mcdonalds_test(self) -> Dict:
+    def get_mcdonalds_test(self) -> dict:
         """Mock McDonalds's terminal test"""
         return {
             "merchant": "McDonald's",
@@ -34,7 +33,7 @@ class TerminalService:
             "success_rate": "100%",
         }
 
-    def get_grocery_regression(self) -> Dict:
+    def get_grocery_regression(self) -> dict:
         """Mock grocery store regression test"""
         return {
             "merchant": "Migros",

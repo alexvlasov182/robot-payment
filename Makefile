@@ -93,3 +93,9 @@ docker-shell:
 
 docker-test:
 	$(COMPOSE) exec -T $(CONTAINER) python -m pytest app/tests $(PYTEST_ARGS)
+
+fresh:
+	docker compose down -v
+	docker compose build --no-cache api
+	docker compose up -d
+	docker compose logs -f api

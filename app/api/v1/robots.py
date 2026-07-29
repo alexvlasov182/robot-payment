@@ -1,10 +1,10 @@
 """Robots Endpoints"""
 
-from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from app.api.dependencies import get_robot_service, get_current_user
-from app.services.robot_service import RobotService
+
+from app.api.dependencies import get_current_user, get_robot_service
 from app.schemas.robot import RobotCreate, RobotResponse, RobotUpdate
+from app.services.robot_service import RobotService
 
 router = APIRouter(prefix="/robots", tags=["Robots"])
 
@@ -32,7 +32,7 @@ async def create_robot(
 
 @router.get(
     "/",
-    response_model=List[RobotResponse],
+    response_model=list[RobotResponse],
     summary="List robots",
     description="Get all registered robots",
 )

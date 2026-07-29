@@ -1,19 +1,90 @@
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: app-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+      POSTGRES_LOG_STATEMENT: "none"
+      PGLOG_MIN_MESSAGES: "warning"
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data_pord:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-appdb}",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - robot-net
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: app-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - robot-net
+
   api:
-    build: .
-    container_name: robot-api
+    image: ${IMAGE_TAG}
+    container_name: api
+    restart: unless-stopped
     ports:
       - "8000:8000"
+    expose:
+      - "8000"
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-appdb}
       SECRET_KEY: ${SECRET_KEY}
       APP_ENV: production
       DEBUG: false
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+      REDIS_HOST: app-redis
     env_file:
       - .env
-    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - robot-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: app-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+    networks:
+      - robot-net
+
+volumes:
+  postgres_data_pord:
+  redis_data:
 
 networks:
   robot-net:

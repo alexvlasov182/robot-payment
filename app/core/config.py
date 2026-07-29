@@ -1,29 +1,56 @@
-"""Base Settings"""
+"""Base Settings."""
 
-from typing import Literal
+import secrets
+from os import getenv
+
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+env = getenv("APP_ENV", "development")
+
+# .env files for local development only
+if env != "production":
+    env_file = ".env.local"
+    load_dotenv(env_file)
+else:
+    env_file = None  # In production, variables are already provided by the container environment
 
 
 class Settings(BaseSettings):
-    """Application settings loaded from environment variables"""
+    """Base Settings."""
 
+<<<<<<< HEAD
     app_name: str = "Robot Payment Testing 11111111111"
     app_env: Literal["development", "staging", "production", "testing"] = "development"
+=======
+    app_name: str = "Robot Payment Testing Platform"
+    app_env: str = "development"
+>>>>>>> origin/main
     debug: bool = True
-    secret_key: str
-    algorithm: str = "HS256"
+
+    database_url: str = "postgresql://robot_user:robot_pass@db:5432/robot_payment"
+
+    secret_key: str = "dev-secret-key-change-in-production"
+    algorithms: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
-    database_url: str
 
-    @property
-    def sync_database_url(self) -> str:
-        """Convert async URL to sync for SQLAlchemy"""
-        return self.database_url.replace("+asyncpg", "")
+    AWS_REGION: str = "eu-central-1"
+    AWS_ACCESS_KEY_ID: str = ""
+    AWS_SECRET_ACCESS_KEY: str = ""
+    S3_BUCKET_NAME: str = ""
+    MAX_UPLOAD_SIZE_MB: int = 10
 
-    model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
-    )
+    model_config = SettingsConfigDict(env_file=env_file, extra="ignore")
 
 
-settings = Settings()  # type: ignore
+class TestSettings(Settings):
+    """Settings for testing environment."""
+
+    app_env: str = "test"
+    database_url: str = "postgresql://test_user:test_pass@postgres:5432/test_db"
+    secret_key: str = secrets.token_urlsafe(32)
+    debug: bool = True
+
+
+settings = TestSettings() if env == "test" else Settings()
