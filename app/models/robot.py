@@ -2,9 +2,8 @@
 
 from enum import StrEnum
 
-from sqlalchemy import Column, DateTime, Integer, String, func
+from sqlalchemy import JSON, Column, DateTime, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import JSON
 
 from app.core.database import Base
 
