@@ -4,7 +4,7 @@ from enum import StrEnum
 
 from sqlalchemy import Column, DateTime, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON
 
 from app.core.database import Base
 
@@ -56,7 +56,7 @@ class Robot(Base):
     )
 
     capabilities = Column(
-        JSONB,
+        JSON,
         nullable=False,
         default=dict,
     )

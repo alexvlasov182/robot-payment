@@ -89,6 +89,28 @@ async def update_robot(
     return robot
 
 
+@router.patch(
+    "/{robot_id}/status",
+    response_model=RobotResponse,
+    summary="Update robot status",
+)
+async def update_robot_status(
+    robot_id: int,
+    robot_data: RobotUpdate,
+    robot_service: RobotService = Depends(get_robot_service),
+    _current_user: dict = Depends(get_current_user),
+):
+    robot = robot_service.update_robot_status(robot_id, robot_data)
+
+    if not robot:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Robot not found",
+        )
+
+    return robot
+
+
 @router.delete(
     "/{robot_id}",
     status_code=status.HTTP_204_NO_CONTENT,

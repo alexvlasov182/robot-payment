@@ -102,7 +102,6 @@ class RobotService:
         robot = self.robot_repo.update(robot_id, data)
 
         if robot:
-            # Clear outdated cache data after updating.
             cache.delete("all_robots")
             cache.delete(f"robot_{robot_id}")
 
