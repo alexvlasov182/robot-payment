@@ -14,7 +14,7 @@ setup_logging()
 
 app = FastAPI(
     title=settings.app_name,
-    description="Payment Terminal Testing Platform 111111111111111",
+    description="Payment Terminal Testing Platform",
     version="2.0.0",
     docs_url="/docs",
     redoc_url="/redoc",

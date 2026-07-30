@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
+    command: postgres -c shared_preload_libraries=pg_stat_statements
     container_name: robot-payment-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -44,6 +45,7 @@ services:
         condition: service_healthy
     volumes:
       - ./app:/app/app
+      - ./migrations:/app/migrations
     networks:
       - robot-net
 

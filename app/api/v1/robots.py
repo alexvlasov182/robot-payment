@@ -64,22 +64,28 @@ async def get_robot(
     return robot
 
 
-@router.patch(
-    "/{robot_id}/status",
+@router.put(
+    "/{robot_id}",
     response_model=RobotResponse,
-    summary="Update robot status",
-    description="Update robot status (online/offline/busy)",
+    summary="Update robot",
+    description="Update robot information",
 )
-async def update_robot_status(
+async def update_robot(
     robot_id: int,
-    data: RobotUpdate,
+    robot_data: RobotUpdate,
     robot_service: RobotService = Depends(get_robot_service),
     _current_user: dict = Depends(get_current_user),
 ):
-    """Update robot status (authentication required)"""
-    robot = robot_service.update_robot_status(robot_id, data)  # type: ignore
+    """Update robot (authentication required)"""
+
+    robot = robot_service.update_robot(robot_id, robot_data)
+
     if not robot:
-        raise HTTPException(status_code=404, detail="Robot not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Robot not found",
+        )
+
     return robot
 
 

@@ -54,16 +54,45 @@ class RobotService:
     def get_robot(self, robot_id: int) -> Robot | None:
         """Return a robot by ID."""
 
-        cahce_key = f"robot_{robot_id}"
-        cahced_robot = cache.get(cahce_key)
-        if cahced_robot is not None:
-            return cahced_robot
+        cache_key = f"robot_{robot_id}"
+        cached_robot = cache.get(cache_key)
+        if cached_robot is not None:
+            return Robot(**cached_robot)
 
         robot = self.robot_repo.get(robot_id)
 
         if robot:
-            # Store robot data in the cache for 60 seconds.
-            cache.set(cahce_key, robot, expire=60)
+            robot_data = {
+                "id": robot.id,
+                "name": robot.name,
+                "robot_type": robot.robot_type,
+                "status": robot.status,
+                "serial_number": robot.serial_number,
+                "capabilities": robot.capabilities,
+            }
+            cache.set(cache_key, robot_data, expire=60)
+
+        return robot
+
+    def update_robot(
+        self,
+        robot_id: int,
+        robot_data: RobotUpdate,
+    ):
+        """Update robot"""
+
+        robot = self.robot_repo.get(robot_id)
+
+        if not robot:
+            return None
+
+        update_data = robot_data.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
+            setattr(robot, field, value)
+
+        self.robot_repo.db.commit()
+        self.robot_repo.db.refresh(robot)
 
         return robot
 

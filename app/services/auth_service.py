@@ -1,6 +1,5 @@
-"""Services main file"""
+"""Authentication service."""
 
-from loguru import logger
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -16,54 +15,65 @@ from app.schemas.user import UserCreate
 
 
 class AuthService:
-    """Authentication service with dependency injection"""
+    """Authentication service with dependency injection."""
 
     def __init__(self, db: Session):
         self.user_repo = UserRepository(db)
-        logger.info("AuthService initialized")
 
-    def register_user(self, email: str, password: str) -> dict:
-        """Register a new user"""
-        logger.info(f"Registration attempt - email={email}")
+    def register_user(
+        self,
+        email: str,
+        password: str,
+    ) -> dict:
+        """Register a new user."""
 
         if self.user_repo.exists_by_email(email):
-            logger.warning(
-                f"Registration failed - email already exists - email={email}"
-            )
             raise ValueError("Email already registered")
 
-        hashed = hash_password(password)
-        user_data = UserCreate(email=email, hashed_password=hashed)
+        hashed_password = hash_password(password)
+
+        user_data = UserCreate(
+            email=email,
+            hashed_password=hashed_password,
+        )
+
         user = self.user_repo.create(user_data)
 
-        logger.info(
-            f"User registered successfully - user_id={user.id}, email={user.email}"
-        )
-        return {"id": user.id, "email": user.email}
+        return {
+            "id": user.id,
+            "email": user.email,
+        }
 
     def authenticate_user(self, email: str, password: str) -> dict:
-        """Authenticate user and return user data"""
-        logger.info(f"Login attempt - email={email}")
+        """Authenticate user"""
 
         user = self.user_repo.get_by_email(email)
+
         if not user:
-            logger.warning(f"Login failed - user not found - email={email}")
             raise ValueError("Invalid credentials")
 
-        if not verify_password(password, user.hashed_password):  # type: ignore
-            logger.warning(f"Login failed - wrong password - email={email}")
+        if not verify_password(password, user.hashed_password):
             raise ValueError("Invalid credentials")
 
-        logger.info(
-            f"User authenticated successfully - user_id={user.id}, email={user.email}"
+        return {
+            "id": user.id,
+            "email": user.email,
+        }
+
+    def get_tokens(
+        self,
+        email: str,
+    ) -> dict:
+        """Generate access and refresh JWT tokens."""
+
+        access_token = create_access_token(
+            data={"sub": email},
         )
-        return {"id": user.id, "email": user.email}
 
-    def get_tokens(self, email: str) -> dict:
-        """Generate access and refresh tokens"""
-        logger.info(f"Generating tokens for - email={email}")
-        access_token = create_access_token(data={"sub": email})
-        refresh_token = create_refresh_token(data={"sub": email})
+        refresh_token = create_refresh_token(
+            data={"sub": email},
+        )
+
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -71,23 +81,37 @@ class AuthService:
             "expires_in": settings.access_token_expire_minutes * 60,
         }
 
-    def refresh_token(self, refresh_token: str) -> dict:
-        """Refresh access token using refresh token"""
-
-        logger.info("Refreshing token")
+    def refresh_token(
+        self,
+        refresh_token: str,
+    ) -> dict:
+        """Create a new access token from refresh token."""
 
         email = decode_refresh_token(refresh_token)
+
         if not email:
             raise ValueError("Invalid refresh token")
 
-        new_access_token = create_access_token(data={"sub": email})
+        access_token = create_access_token(
+            data={"sub": email},
+        )
+
         return {
-            "access_token": new_access_token,
+            "access_token": access_token,
             "token_type": "bearer",
             "expires_in": settings.access_token_expire_minutes * 60,
         }
 
-    def logout(self, token: str) -> bool:
-        """Logout user (in production, add token to blacklist)"""
-        logger.info("Logout requested")
+    def logout(
+        self,
+        token: str,
+    ) -> bool:
+        """
+        Logout user.
+
+        JWT access tokens are stateless.
+        Refresh token invalidation can be implemented
+        using database storage or token blacklist.
+        """
+
         return True
