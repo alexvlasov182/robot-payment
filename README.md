@@ -1,4 +1,4 @@
-# 🤖 Robot Payment Testing Platform
+# Robot Payment Testing Platform
 
 ## About The Project
 
@@ -10,6 +10,7 @@
 | ------------------------- | ---------------------------------------------- |
 | 🔐 **JWT Authentication** | Secure login with 30-minute access tokens      |
 | 🤖 **Robot Management**   | CRUD operations for T1, T4, ATM, MOBILE robots |
+| 👤 **Resource Ownership** | Robots are scoped per-user (multi-tenant)      |
 | 💳 **Payment Simulation** | Simulate tap, chip, and swipe payments         |
 | 🐳 **Docker Compose**     | One-command development environment            |
 | 📊 **CI/CD Pipeline**     | Automated linting, testing, type checking      |
@@ -23,6 +24,20 @@
 | **SERVICE LAYER**         | Business logic, orchestration     |
 | **REPOSITORY LAYER**      | Database operations, CRUD         |
 | **DATABASE (PostgreSQL)** | Data persistence                  |
+
+## Data Model
+
+Robots are owned by users — a classic **One-to-Many** relationship enforced
+at both the database and API level.
+
+- Each `Robot` has an `owner_id` foreign key referencing `users.id`
+  (`ON DELETE CASCADE`).
+- Every robot endpoint filters by the authenticated user's ID — one user
+  can never read, update, or delete another user's robots.
+- Requesting another user's robot by ID returns **404** (not 403), so the
+  API doesn't leak information about resources that exist but aren't yours.
+- Redis caching is scoped per-user (`robot_{id}_{user_id}`), preventing
+  cache leakage between tenants.
 
 ### Technology Stack
 
@@ -91,15 +106,15 @@ uvicorn app.main:app --reload
 | POST   | /api/v1/auth/register | Create new user |
 | POST   | /api/v1/auth/login    | Get JWT token   |
 
-### Robots (Requires Auth)
+### Robots (Requires Auth, scoped to authenticated user)
 
-| Method | Endpoint                   | Description         |
-| ------ | -------------------------- | ------------------- |
-| POST   | /api/v1/robots/            | Create robot        |
-| GET    | /api/v1/robots/            | List all robots     |
-| GET    | /api/v1/robots/{id}        | GET robot by ID     |
-| PATCH  | /api/v1/robots/{id}/status | Update robot status |
-| DELETE | /api/v1/robots/{id}        | Delete robot        |
+| Method | Endpoint                   | Description                         |
+| ------ | -------------------------- | ----------------------------------- |
+| POST   | /api/v1/robots/            | Create robot (owned by caller)      |
+| GET    | /api/v1/robots/            | List caller's own robots            |
+| GET    | /api/v1/robots/{id}        | Get robot by ID (must be owner)     |
+| PATCH  | /api/v1/robots/{id}/status | Update robot status (must be owner) |
+| DELETE | /api/v1/robots/{id}        | Delete robot (must be owner)        |
 
 ### Terminal Testing
 
@@ -162,12 +177,12 @@ robot-payment/
 │   │   ├── database.py  # SQLAlchemy setup
 │   │   └── security.py  # JWT, password hashing
 │   ├── models/          # SQLAlchemy models
-│   │   ├── user.py
-│   │   └── robot.py
+│   │   ├── user.py      # User + robots relationship
+│   │   └── robot.py     # Robot + owner_id FK
 │   ├── repositories/    # Repository pattern
 │   │   ├── base.py      # Generic CRUD
 │   │   ├── user_repository.py
-│   │   └── robot_repository.py
+│   │   └── robot_repository.py  # owner-scoped queries
 │   ├── schemas/         # Pydantic validation
 │   │   ├── auth.py
 │   │   ├── user.py
@@ -175,9 +190,14 @@ robot-payment/
 │   │   └── terminal.py
 │   ├── services/        # Business logic
 │   │   ├── auth_service.py
-│   │   ├── robot_service.py
+│   │   ├── robot_service.py     # owner-scoped caching
 │   │   └── terminal_services.py
 │   └── tests/           # Unit tests
+├── tests/
+│   ├── test_auth_integration.py
+│   ├── test_auth_unit.py
+│   ├── test_basic.py
+│   └── test_robot_isolation.py  # multi-tenant isolation tests
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
@@ -223,17 +243,10 @@ class AuthService:
 
 ## Test Coverage
 
-```bash
-Name                            Stmts   Miss  Cover
----------------------------------------------------
-app/api/v1/auth.py                23      8    65%
-app/api/v1/robots.py              13      3    77%
-app/api/v1/terminals.py           13      4    69%
-app/core/security.py              14      5    64%
-app/services/auth_service.py      19      5    74%
----------------------------------------------------
-TOTAL                             209     49    77%
-```
+19 tests covering authentication, robot CRUD, terminal simulation,
+and multi-tenant resource isolation.
+
+Run `make test-cov` for the current coverage report.
 
 ## CI/CD Pipeline (GitLab CI)
 
@@ -263,7 +276,7 @@ curl -X POST http://localhost:8000/api/v1/auth/register \
 ```bash
 TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
  -H "Content-Type: application/json" \
- -d '{"email":"interview@test.com","password":"SecurePass123!"}' \
+ -d '{"email":"interview123@test.com","password":"SecurePass123!"}' \
  | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))")
 ```
 
@@ -273,7 +286,7 @@ TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/auth/login \
 curl -X POST http://localhost:8000/api/v1/robots \
  -H "Authorization: Bearer $TOKEN" \
  -H "Content-Type: application/json" \
- -d '{"name":"Robot T4","serial_number":"T4-001","robot_type":"T4","capabilities":"tap,chip,swipe"}'
+ -d '{"name":"Robot T4","serial_number":"T4-001","robot_type":"T4","capabilities":{"tap":true,"chip":true,"swipe":true}}'
 ```
 
 ### 5. List robots

@@ -2,8 +2,10 @@
 
 from enum import StrEnum
 
-from sqlalchemy import JSON, Column, DateTime, Integer, String, func
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -55,10 +57,19 @@ class Robot(Base):
     )
 
     capabilities = Column(
-        JSON,
+        JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
         default=dict,
     )
+
+    owner_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    owner = relationship("User", back_populates="robots")
 
     created_at = Column(
         DateTime(timezone=True),

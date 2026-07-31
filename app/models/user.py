@@ -1,6 +1,7 @@
 """Model for the User"""
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, func
+from sqlalchemy.orm import relationship
 
 from app.core.database import Base
 
@@ -39,6 +40,12 @@ class User(Base):
     refresh_token_expires_at = Column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+    robots = relationship(
+        "Robot",
+        back_populates="owner",
+        cascade="all, delete-orphan",
     )
 
     updated_at = Column(

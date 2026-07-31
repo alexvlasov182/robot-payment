@@ -1,6 +1,6 @@
 """Main file fot the Auth Schemas"""
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class UserRegister(BaseModel):
@@ -19,6 +19,13 @@ class UserRegister(BaseModel):
         if not any(ch.isdigit() for ch in value):
             raise ValueError("Password must contain at least one digit")
         return value
+
+    @model_validator(mode="after")
+    def passwords_match(self) -> "UserRegister":
+        """Ensure password and confirm_password are identical"""
+        if self.password != self.confirm_password:
+            raise ValueError("Passwords do not match")
+        return self
 
 
 class UserLogin(BaseModel):

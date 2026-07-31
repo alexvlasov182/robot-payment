@@ -35,5 +35,6 @@ class RobotResponse(BaseModel):
     status: str
     serial_number: str
     capabilities: dict[str, Any]
+    owner_id: int
 
     model_config = ConfigDict(from_attributes=True)
