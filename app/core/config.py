@@ -8,12 +8,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env = getenv("APP_ENV", "development")
 
-# .env files for local development only
 if env != "production":
-    env_file = ".env.local"
-    load_dotenv(env_file)
-else:
-    env_file = None  # In production, variables are already provided by the container environment
+    load_dotenv(".env.local")
 
 
 class Settings(BaseSettings):
@@ -36,7 +32,10 @@ class Settings(BaseSettings):
     s3_bucket_name: str = ""
     max_upload_size_mb: int = 10
 
-    model_config = SettingsConfigDict(env_file=env_file, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env.local" if env != "production" else (),
+        extra="ignore",
+    )
 
 
 class TestSettings(Settings):

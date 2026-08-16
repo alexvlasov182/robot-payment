@@ -1,13 +1,13 @@
 """Security configuration."""
 
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# Password hashing configuration
 pwd_context = CryptContext(
     schemes=["pbkdf2_sha256"],
     deprecated="auto",
@@ -33,7 +33,7 @@ def verify_password(
 
 
 def create_access_token(
-    data: dict,
+    data: dict[str, Any],
     expires_delta: timedelta | None = None,
 ) -> str:
     """Create JWT access token."""
@@ -61,7 +61,7 @@ def create_access_token(
 
 
 def create_refresh_token(
-    data: dict,
+    data: dict[str, Any],
     expires_delta: timedelta | None = None,
 ) -> str:
     """Create JWT refresh token."""

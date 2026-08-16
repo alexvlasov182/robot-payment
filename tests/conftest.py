@@ -1,14 +1,8 @@
-"""Pytest configuration for tests"""
+"""Pytest configuration for tests."""
 
 import os
 import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
-os.environ["DATABASE_URL"] = "sqlite:///./test.db"
-os.environ["SECRET_KEY"] = "test-secret-key-for-ci-only"
-os.environ["APP_ENV"] = "testing"
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,96 +16,120 @@ from app.main import app
 from app.models.robot import Robot, RobotType
 from app.models.user import User
 
-TEST_DATABASE_URL = "sqlite:///./test.db"
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["SECRET_KEY"] = "test-secret-key-for-ci-only"
+os.environ["APP_ENV"] = "testing"
+
 
 engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
+    "sqlite:///:memory:",
+    connect_args={
+        "check_same_thread": False,
+    },
     poolclass=StaticPool,
 )
 
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+TestingSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+)
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="function", autouse=True)
 def setup_database():
-    """Create tables once for the whole test session"""
+    """
+    Create clean database for every test.
+    """
+
     Base.metadata.create_all(bind=engine)
+
     yield
+
     Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")
-def db_session() -> Session:  # type: ignore
+def db_session():
     """
-    Each test gets a clean session, rolled back after.
-    No more db + db_session alias confusion.
-    """
-    connection = engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
+    Create a new database session for a test."""
+    session = TestingSessionLocal()
 
-    yield session  # type: ignore
+    try:
+        yield session
+    finally:
+        session.close()
 
-    session.close()
-    transaction.rollback()
-    connection.close()
+
+session = db_session
 
 
 @pytest.fixture(scope="function")
-def client(db_session: Session) -> TestClient:  # type: ignore
-    """Test client that uses the test database session"""
+def client(db_session: Session):
+    """Create a TestClient with overridden get_db dependency."""
 
     def override_get_db():
-        try:
-            yield db_session
-        finally:
-            pass
+        yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
 
     with TestClient(app) as test_client:
-        yield test_client  # type: ignore
+        yield test_client
 
     app.dependency_overrides.clear()
 
 
-@pytest.fixture(scope="function")
-def test_user(db_session: Session):  # type: ignore
-    """Create a test user in the database"""
+@pytest.fixture
+def test_user(db_session: Session):
+    """Create a test user in the database."""
     user = User(
         email="testuser@example.com",
         hashed_password=hash_password("testpassword123"),
         is_active=True,
     )
+
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
+
     return user
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def test_robot(db_session: Session):
-    """Create a test robot in the database"""
+    """Create a test robot in the database."""
     robot = Robot(
         name="Test Robot T4",
         robot_type=RobotType.T4,
         serial_number="TEST-001",
         status="offline",
-        capabilities="tap,chip,swipe",
+        capabilities={
+            "tap": True,
+            "chip": True,
+        },
     )
+
     db_session.add(robot)
     db_session.commit()
     db_session.refresh(robot)
+
     return robot
 
 
-@pytest.fixture(scope="function")
-def auth_headers(client: TestClient, test_user):  # type: ignore
-    """Get auth headers for protected endpoints"""
+@pytest.fixture
+def auth_headers(client, test_user):
+    """Get authentication headers for a test user."""
     response = client.post(
         "/api/v1/auth/login",
-        json={"email": test_user.email, "password": "testpassword123"},
+        json={
+            "email": test_user.email,
+            "password": "testpassword123",
+        },
     )
+
     token = response.json()["access_token"]
+
     return {"Authorization": f"Bearer {token}"}

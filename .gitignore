@@ -17,3 +17,9 @@ logs/
 .env.production
 .env.*.local
 cache_benchmark.py
+test.db
+*.sqlite
+.coverage
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/

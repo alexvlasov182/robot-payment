@@ -1,13 +1,18 @@
 """Model for the Robots"""
 
+from datetime import datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import JSON, DateTime, ForeignKey, String, func
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class RobotType(StrEnum):
@@ -34,49 +39,66 @@ class Robot(Base):
 
     __tablename__ = "robots"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(
+        primary_key=True,
+        index=True,
+    )
 
-    name = Column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
 
-    robot_type = Column(
-        SQLEnum(RobotType, name="robot_type"),
+    robot_type: Mapped[RobotType] = mapped_column(
+        SQLEnum(
+            RobotType,
+            name="robot_type",
+        ),
         default=RobotType.T1,
         nullable=False,
     )
 
-    status = Column(
-        SQLEnum(RobotStatus, name="robot_status"),
+    status: Mapped[RobotStatus] = mapped_column(
+        SQLEnum(
+            RobotStatus,
+            name="robot_status",
+        ),
         default=RobotStatus.OFFLINE,
         nullable=False,
     )
 
-    serial_number = Column(
+    serial_number: Mapped[str] = mapped_column(
         String(100),
         unique=True,
         nullable=False,
     )
 
-    capabilities = Column(
+    capabilities: Mapped[dict] = mapped_column(
         JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
         default=dict,
     )
 
-    owner_id = Column(
-        Integer,
-        ForeignKey("users.id", ondelete="CASCADE"),
+    owner_id: Mapped[int] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
         nullable=False,
         index=True,
     )
 
-    owner = relationship("User", back_populates="robots")
+    owner: Mapped["User"] = relationship(
+        "User",
+        back_populates="robots",
+    )
 
-    created_at = Column(
+    created_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
     )
 
-    updated_at = Column(
+    updated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),

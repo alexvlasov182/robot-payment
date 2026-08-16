@@ -3,7 +3,9 @@
 from fastapi.testclient import TestClient
 
 
-def _register_and_login(client: TestClient, email: str, password: str = "Test123!") -> dict:
+def _register_and_login(
+    client: TestClient, email: str, password: str = "Test123!"
+) -> dict:
     """Register a user and return auth headers with their access token."""
     client.post(
         "/api/v1/auth/register",
@@ -91,7 +93,9 @@ class TestRobotIsolation:
         )
         robot_id = create.json()["id"]
 
-        delete_attempt = client.delete(f"/api/v1/robots/{robot_id}", headers=john_headers)
+        delete_attempt = client.delete(
+            f"/api/v1/robots/{robot_id}", headers=john_headers
+        )
         assert delete_attempt.status_code == 404
 
         # Confirm the robot is untouched from the real owner's perspective
