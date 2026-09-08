@@ -8,13 +8,13 @@
 
 | Feature                   | Description                                    |
 | ------------------------- | ---------------------------------------------- |
-| 🔐 **JWT Authentication** | Secure login with 30-minute access tokens      |
-| 🤖 **Robot Management**   | CRUD operations for T1, T4, ATM, MOBILE robots |
-| 👤 **Resource Ownership** | Robots are scoped per-user (multi-tenant)      |
-| 💳 **Payment Simulation** | Simulate tap, chip, and swipe payments         |
-| 🐳 **Docker Compose**     | One-command development environment            |
-| 📊 **CI/CD Pipeline**     | Automated linting, testing, type checking      |
-| 📝 **OpenAPI Docs**       | Auto-generated Swagger UI at `/docs`           |
+| **JWT Authentication** | Secure login with 30-minute access tokens      |
+| **Robot Management**   | CRUD operations for T1, T4, ATM, MOBILE robots |
+| **Payment Simulation** | Simulate tap, chip, and swipe payments         |
+| **Docker Compose**     | One-command development environment            |
+| **CI/CD Pipeline**     | Automated linting, testing, type checking      |
+| **OpenAPI Docs**       | Auto-generated Swagger UI at `/docs`           |
+
 
 ## Architecture
 
@@ -208,10 +208,10 @@ robot-payment/
 
 | Variable     | Description                  | Required |
 | ------------ | ---------------------------- | -------- |
-| SECRET_KEY   | JWT signing key (32+ char)   | ✅       |
-| DATABASE_URL | PostgreSQL connection string | ✅       |
-| APP_ENV      | development/staging/prod     | ❌       |
-| DEBUG        | Enable debug mode            | ❌       |
+| SECRET_KEY   | JWT signing key (32+ char)   | Done     |
+| DATABASE_URL | PostgreSQL connection string | Done     |
+| APP_ENV      | development/staging/prod     | Not      |
+| DEBUG        | Enable debug mode            | Not      |
 
 ## Design Patterns Used
 
