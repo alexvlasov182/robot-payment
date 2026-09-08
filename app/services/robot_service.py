@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.core.redis_client import cache
 from app.models.robot import Robot
+from app.models.user import User
 from app.repositories.robot_repository import RobotRepository
 from app.schemas.robot import RobotCreate, RobotUpdate
 
@@ -14,26 +15,25 @@ class RobotService:
     def __init__(self, db: Session):
         self.robot_repo = RobotRepository(db)
 
-    def create_robot(self, robot_data: RobotCreate) -> Robot:
-        """Create a new robot."""
+    def create_robot(self, robot_data: RobotCreate, current_user: User) -> Robot:
+        """Create a new robot, owned by current_user."""
         if self.robot_repo.get_by_serial_number(robot_data.serial_number):
             raise ValueError("Robot with this serial number already exists")
 
-        robot = self.robot_repo.create(robot_data)
+        robot = self.robot_repo.create_for_owner(robot_data, current_user.id)
 
-        # Clear the cache after creating a robot.
-        cache.delete("all_robots")
+        cache.delete(f"all_robots_{current_user.id}")
 
         return robot
 
-    def get_all_robots(self) -> list[Robot]:
-        """Return all robots with Redis cache support."""
-        cached_robots = cache.get("all_robots")
+    def get_all_robots(self, current_user: User) -> list[Robot]:
+        """Return only robots owned by current_user, with Redis cache support."""
+        cache_key = f"all_robots_{current_user.id}"
+        cached_robots = cache.get(cache_key)
         if cached_robots is not None:
-            # Convert cached data back to Robot objects.
             return [Robot(**item) for item in cached_robots]
 
-        robots = self.robot_repo.get_all()
+        robots = self.robot_repo.get_all_for_owner(current_user.id)
 
         robots_data = [
             {
@@ -43,50 +43,88 @@ class RobotService:
                 "status": r.status,
                 "serial_number": r.serial_number,
                 "capabilities": r.capabilities,
+                "owner_id": r.owner_id,
             }
             for r in robots
         ]
 
-        # Store robot data in the cache for 60 seconds.
-        cache.set("all_robots", robots_data, expire=60)
+        cache.set(cache_key, robots_data, expire=60)
         return robots
 
-    def get_robot(self, robot_id: int) -> Robot | None:
-        """Return a robot by ID."""
+    def get_robot(self, robot_id: int, current_user: User) -> Robot | None:
+        """Return a robot by ID, only if it belongs to current_user."""
+        cache_key = f"robot_{robot_id}_{current_user.id}"
+        cached_robot = cache.get(cache_key)
+        if cached_robot is not None:
+            return Robot(**cached_robot)
 
-        cahce_key = f"robot_{robot_id}"
-        cahced_robot = cache.get(cahce_key)
-        if cahced_robot is not None:
-            return cahced_robot
-
-        robot = self.robot_repo.get(robot_id)
+        robot = self.robot_repo.get_for_owner(robot_id, current_user.id)
 
         if robot:
-            # Store robot data in the cache for 60 seconds.
-            cache.set(cahce_key, robot, expire=60)
+            robot_data = {
+                "id": robot.id,
+                "name": robot.name,
+                "robot_type": robot.robot_type,
+                "status": robot.status,
+                "serial_number": robot.serial_number,
+                "capabilities": robot.capabilities,
+                "owner_id": robot.owner_id,
+            }
+            cache.set(cache_key, robot_data, expire=60)
 
         return robot
 
-    def update_robot_status(self, robot_id: int, data: RobotUpdate) -> Robot | None:
-        """Update robot information."""
+    def update_robot(
+        self,
+        robot_id: int,
+        robot_data: RobotUpdate,
+        current_user: User,
+    ):
+        """Update robot, only if it belongs to current_user."""
+        robot = self.robot_repo.get_for_owner(robot_id, current_user.id)
+
+        if not robot:
+            return None
+
+        update_data = robot_data.model_dump(exclude_unset=True)
+
+        for field, value in update_data.items():
+            setattr(robot, field, value)
+
+        self.robot_repo.db.commit()
+        self.robot_repo.db.refresh(robot)
+
+        cache.delete(f"all_robots_{current_user.id}")
+        cache.delete(f"robot_{robot_id}_{current_user.id}")
+
+        return robot
+
+    def update_robot_status(
+        self, robot_id: int, data: RobotUpdate, current_user: User
+    ) -> Robot | None:
+        """Update robot status, only if it belongs to current_user."""
+        robot = self.robot_repo.get_for_owner(robot_id, current_user.id)
+        if not robot:
+            return None
 
         robot = self.robot_repo.update(robot_id, data)
 
         if robot:
-            # Clear outdated cache data after updating.
-            cache.delete("all_robots")
-            cache.delete(f"robot_{robot_id}")
+            cache.delete(f"all_robots_{current_user.id}")
+            cache.delete(f"robot_{robot_id}_{current_user.id}")
 
         return robot
 
-    def delete_robot(self, robot_id: int) -> bool:
-        """Delete a robot"""
+    def delete_robot(self, robot_id: int, current_user: User) -> bool:
+        """Delete a robot, only if it belongs to current_user."""
+        robot = self.robot_repo.get_for_owner(robot_id, current_user.id)
+        if not robot:
+            return False
+
         result = self.robot_repo.delete(robot_id)
 
-        # Clear the cache after deleting
         if result:
-            # Clear outdated cache data after deleting.
-            cache.delete("all_robots")
-            cache.delete(f"robot_{robot_id}")
+            cache.delete(f"all_robots_{current_user.id}")
+            cache.delete(f"robot_{robot_id}_{current_user.id}")
 
         return result

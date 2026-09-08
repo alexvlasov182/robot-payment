@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import decode_access_token
+from app.models.user import User
 from app.services.auth_service import AuthService
 from app.services.robot_service import RobotService
 from app.services.terminal_services import TerminalService
@@ -32,9 +33,9 @@ def get_terminal_service() -> TerminalService:
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> dict:
-    """Get current authenticated user"""
-    # If no credentials provided, raise 401
+    db: Session = Depends(get_db),
+) -> User:
+    """Get current authenticated user as a full User model instance."""
     if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -52,4 +53,12 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    return {"email": email}
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user

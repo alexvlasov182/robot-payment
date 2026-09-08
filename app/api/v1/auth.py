@@ -1,13 +1,15 @@
-"""Auth endpoints"""
+"""Auth endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from loguru import logger
 
 from app.api.dependencies import get_auth_service
 from app.schemas.auth import TokenResponse, UserLogin, UserRegister
 from app.services.auth_service import AuthService
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"],
+)
 
 
 @router.post(
@@ -17,22 +19,33 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     description="Create a new user account",
 )
 async def register(
-    user_data: UserRegister, auth_service: AuthService = Depends(get_auth_service)
+    user_data: UserRegister,
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    """Register a new user"""
+    """Register new user."""
+
     if user_data.password != user_data.confirm_password:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Passwords do not match",
         )
 
     try:
-        user = auth_service.register_user(user_data.email, user_data.password)
-        logger.info(f"User registered successfully via API - email={user_data.email}")
-        return {"message": "User registered successfully", "user": user}
-    except ValueError as e:
+        user = auth_service.register_user(
+            user_data.email,
+            user_data.password,
+        )
+
+        return {
+            "message": "User registered successfully",
+            "user": user,
+        }
+
+    except ValueError as exc:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
-        ) from e
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post(
@@ -42,23 +55,31 @@ async def register(
     description="Authenticate and get JWT token",
 )
 async def login(
-    user_data: UserLogin, auth_service: AuthService = Depends(get_auth_service)
+    user_data: UserLogin,
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    """Login and get access token"""
+    """Login user and return JWT tokens."""
+
     try:
-        user = auth_service.authenticate_user(user_data.email, user_data.password)
+        user = auth_service.authenticate_user(
+            user_data.email,
+            user_data.password,
+        )
+
         tokens = auth_service.get_tokens(user["email"])
-        logger.info(f"User logged in successfully - email={user_data.email}")
+
         return TokenResponse(
             access_token=tokens["access_token"],
+            refresh_token=tokens["refresh_token"],
             token_type=tokens["token_type"],
             expires_in=tokens["expires_in"],
-        )  # pyright: ignore[reportCallIssue]
-    except ValueError as e:
-        logger.warning(f"Login failed - {str(e)} - email={user_data.email}")
+        )
+
+    except ValueError as exc:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
-        ) from e
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post(
@@ -68,20 +89,28 @@ async def login(
     description="Get new access token using refresh token",
 )
 async def refresh_token(
-    refresh_token_value: str, auth_service: AuthService = Depends(get_auth_service)
+    refresh_token_value: str,
+    auth_service: AuthService = Depends(get_auth_service),
 ):
-    """Refresh access token"""
+    """Refresh access token."""
+
     try:
-        tokens = auth_service.refresh_token(refresh_token_value)
+        tokens = auth_service.refresh_token(
+            refresh_token_value,
+        )
+
         return TokenResponse(
             access_token=tokens["access_token"],
+            refresh_token=tokens["refresh_token"],
             token_type=tokens["token_type"],
             expires_in=tokens["expires_in"],
         )  # type: ignore
-    except ValueError as e:
+
+    except ValueError as exc:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e)
-        ) from e
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(exc),
+        ) from exc
 
 
 @router.post(
@@ -92,8 +121,12 @@ async def refresh_token(
 async def logout():
     """
     Logout user.
-    Token is validated but not blacklisted here.
-    Production strategy: store token jti in Redis with TTL equal to token expiry.
+
+    JWT access tokens are stateless.
+    Refresh token invalidation should be implemented
+    with database storage or Redis blacklist.
     """
-    logger.info("Logout requested for user")
-    return {"message": "Successfully logged out"}
+
+    return {
+        "message": "Successfully logged out",
+    }

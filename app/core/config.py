@@ -8,12 +8,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 env = getenv("APP_ENV", "development")
 
-# .env files for local development only
 if env != "production":
-    env_file = ".env.local"
-    load_dotenv(env_file)
-else:
-    env_file = None  # In production, variables are already provided by the container environment
+    load_dotenv(".env.local")
 
 
 class Settings(BaseSettings):
@@ -30,13 +26,16 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 
-    AWS_REGION: str = "eu-central-1"
-    AWS_ACCESS_KEY_ID: str = ""
-    AWS_SECRET_ACCESS_KEY: str = ""
-    S3_BUCKET_NAME: str = ""
-    MAX_UPLOAD_SIZE_MB: int = 10
+    aws_region: str = "eu-central-1"
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    s3_bucket_name: str = ""
+    max_upload_size_mb: int = 10
 
-    model_config = SettingsConfigDict(env_file=env_file, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env.local" if env != "production" else (),
+        extra="ignore",
+    )
 
 
 class TestSettings(Settings):

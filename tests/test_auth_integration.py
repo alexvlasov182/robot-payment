@@ -72,7 +72,10 @@ class TestRobotIntegration:
                 "name": "Integration Robot",
                 "serial_number": "INT-001",
                 "robot_type": "T4",
-                "capabilities": "tap,chip",
+                "capabilities": {
+                    "tap": True,
+                    "chip": True,
+                },
             },
         )
         assert create.status_code == 201

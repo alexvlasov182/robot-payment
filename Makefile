@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 PYTHON      ?= $(shell if [ -x .venv/bin/python ]; then echo .venv/bin/python; else command -v python3; fi)
 COMPOSE     ?= docker compose
-CONTAINER   ?= robot-api
+CONTAINER   ?= api
 PYTEST_ARGS ?=
 
 .PHONY: help install install-dev run test test-cov lint lint-fix format typecheck check clean \
@@ -46,17 +46,17 @@ run:
 	$(PYTHON) -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 test:
-	$(PYTHON) -m pytest app/tests $(PYTEST_ARGS)
+	$(PYTHON) -m pytest ./tests $(PYTEST_ARGS)
 
 test-cov:
-	$(PYTHON) -m pytest --cov=app --cov-report=term-missing app/tests $(PYTEST_ARGS)
+	$(PYTHON) -m pytest --cov=app --cov-report=term-missing ./tests $(PYTEST_ARGS)
 
 lint:
-	$(PYTHON) -m ruff check app/
+	$(PYTHON) -m ruff check ./app/
 
 lint-fix:
-	$(PYTHON) -m ruff check --fix app/
-	$(PYTHON) -m ruff format app/
+	$(PYTHON) -m ruff check --fix ./app/
+	$(PYTHON) -m ruff format ./app/
 
 format:
 	$(PYTHON) -m ruff format app/
@@ -92,4 +92,15 @@ docker-shell:
 	$(COMPOSE) exec $(CONTAINER) sh
 
 docker-test:
-	$(COMPOSE) exec -T $(CONTAINER) python -m pytest app/tests $(PYTEST_ARGS)
+	$(COMPOSE) exec -T $(CONTAINER) python -m pytest ./tests $(PYTEST_ARGS)
+
+docker-quality:
+	$(COMPOSE) exec -T api ruff check app/
+	$(COMPOSE) exec -T api mypy app/ --ignore-missing-imports
+	$(COMPOSE) exec -T api pytest
+
+fresh:
+	docker compose down -v
+	docker compose build --no-cache api
+	docker compose up -d
+	docker compose logs -f api
